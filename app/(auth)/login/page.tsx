@@ -2,8 +2,9 @@
 
 import { Suspense, useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { login, signInWithGoogle } from "@/app/actions/auth";
+import { useSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,8 @@ function OAuthErrorBanner() {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
+  const supabase = useSupabaseBrowserClient();
   const [state, formAction, pending] = useActionState(login, undefined);
   const [token, setToken] = useState("");
   const turnstileRef = useRef<TurnstileWidgetHandle>(null);
@@ -40,6 +43,15 @@ export default function LoginPage() {
       setToken("");
     }
   }, [state]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        router.replace("/");
+      }
+    });
+  }, [supabase, router]);
 
   return (
     <>
