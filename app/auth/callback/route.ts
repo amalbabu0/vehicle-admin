@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(
       `${origin}/login${errorCode ? `?error=${errorCode}` : ""}`
     );
-    response.cookies.delete("sb-access-token", { path: "/" });
-    response.cookies.delete("sb-refresh-token", { path: "/" });
-    response.cookies.delete("sb-persist-session", { path: "/" });
+    response.cookies.delete("sb-access-token");
+    response.cookies.delete("sb-refresh-token");
+    response.cookies.delete("sb-persist-session");
     return response;
   };
 
@@ -45,9 +45,9 @@ export async function GET(request: NextRequest) {
 
   if (profileError || !profile || (profile.role !== "admin" && profile.role !== "lister")) {
     const response = NextResponse.redirect(`${origin}/login?error=no_admin_access`);
-    response.cookies.delete("sb-access-token", { path: "/" });
-    response.cookies.delete("sb-refresh-token", { path: "/" });
-    response.cookies.delete("sb-persist-session", { path: "/" });
+    response.cookies.delete("sb-access-token");
+    response.cookies.delete("sb-refresh-token");
+    response.cookies.delete("sb-persist-session");
     return response;
   }
 
@@ -61,9 +61,9 @@ export async function GET(request: NextRequest) {
     const allowedEmail = typeof setting?.value === "string" ? setting.value : null;
     if (!allowedEmail || data.user.email?.toLowerCase() !== allowedEmail.toLowerCase()) {
       const response = NextResponse.redirect(`${origin}/login?error=no_admin_access`);
-      response.cookies.delete("sb-access-token", { path: "/" });
-      response.cookies.delete("sb-refresh-token", { path: "/" });
-      response.cookies.delete("sb-persist-session", { path: "/" });
+      response.cookies.delete("sb-access-token");
+      response.cookies.delete("sb-refresh-token");
+      response.cookies.delete("sb-persist-session");
       return response;
     }
   }
