@@ -55,6 +55,20 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  if (user && !isPublicPath) {
+    const { data: profile, error } = await supabase
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (error || !profile) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirectTo", path);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   if (user && isPublicPath && path !== "/auth/callback") {
     return NextResponse.redirect(new URL("/", request.url));
   }

@@ -3,7 +3,7 @@
 import * as z from "zod";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { authRateLimit, checkRateLimit } from "@/lib/rate-limit";
 import { env } from "@/lib/env";
@@ -92,23 +92,24 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error) {
+  if (error || !data.user) {
     return { message: "Incorrect email or password." };
   }
 
-  const { data: profile } = await supabase
+  const service = createServiceRoleClient();
+  const { data: profile, error: profileError } = await service
     .from("admin_profiles")
     .select("role")
     .eq("id", data.user.id)
     .single();
 
-  if (!profile || (profile.role !== "admin" && profile.role !== "lister")) {
+  if (profileError || !profile || (profile.role !== "admin" && profile.role !== "lister")) {
     await supabase.auth.signOut();
     return { message: "This account doesn't have access to the admin portal." };
   }
 
   if (profile.role === "admin") {
-    const { data: setting } = await supabase
+    const { data: setting } = await service
       .from("site_settings")
       .select("value")
       .eq("key", "admin_email")

@@ -1,6 +1,5 @@
 import "server-only";
 
-import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
@@ -9,11 +8,10 @@ type Profile = Database["public"]["Tables"]["admin_profiles"]["Row"];
 
 /**
  * Data Access Layer — the real authorization boundary, alongside RLS.
- * cache() memoizes per request so calling this from multiple Server
- * Components in one render doesn't re-hit Supabase each time. Never rely
- * on proxy.ts or client-side checks alone — see proxy.ts's own comment.
+ * Do not memoize auth results across requests. Each request must resolve
+ * the current session and profile from the current request cookies.
  */
-export const verifySession = cache(async () => {
+export async function verifySession() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -24,9 +22,9 @@ export const verifySession = cache(async () => {
   }
 
   return user;
-});
+}
 
-export const getCurrentProfile = cache(async (): Promise<Profile> => {
+export async function getCurrentProfile(): Promise<Profile> {
   const user = await verifySession();
   const supabase = await createClient();
 
@@ -41,7 +39,7 @@ export const getCurrentProfile = cache(async (): Promise<Profile> => {
   }
 
   return profile;
-});
+}
 
 /**
  * Admin app only allows admin/lister roles. A `user`-role account (e.g.
