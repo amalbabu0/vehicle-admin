@@ -4,6 +4,7 @@ import * as z from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminOrLister } from "@/lib/auth/dal";
 import { vehicleCreateSchema, type VehicleCreateInput } from "@/lib/validators/vehicle";
+import { resolveVehicleReferenceIds } from "@/lib/vehicles/references";
 
 export type VehicleActionState = {
   errors?: Record<string, string[]>;
@@ -22,12 +23,16 @@ export async function createVehicle(_prevState: VehicleActionState, formData: Fo
 
   const supabase = await createClient();
   const input: VehicleCreateInput = validated.data;
+  const { brandId, locationId } = await resolveVehicleReferenceIds(supabase, input.brand, input.locationId);
+  if (!brandId || !locationId) {
+    return { message: !brandId ? `Brand "${input.brand}" was not found.` : `Location "${input.locationId}" was not found.` };
+  }
 
   const slug = `${input.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "vehicle"}-${crypto.randomUUID().slice(0, 8)}`;
   const profile = await requireAdminOrLister();
   const { data: vehicle, error } = await supabase.from("vehicles").insert({
     name: input.name,
-    brand_id: input.brand,
+    brand_id: brandId,
     model: input.model || null,
     registration_year: Number(input.year),
     lease_amount: Number(input.leaseAmount),
@@ -35,7 +40,7 @@ export async function createVehicle(_prevState: VehicleActionState, formData: Fo
     direct_owner: input.directOwner,
     contact_phone: input.contactPhone,
     service_charge_percent: input.serviceChargePercent,
-    location_id: input.locationId,
+    location_id: locationId,
     description: input.description,
     fuel_type: input.fuelType ?? null,
     transmission: input.transmission ?? null,

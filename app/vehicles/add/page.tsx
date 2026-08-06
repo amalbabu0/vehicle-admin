@@ -456,7 +456,7 @@ export default function AddVehiclePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="imageUrls">Image URLs</Label>
+                  <Label htmlFor="vehicleImages">Vehicle images</Label>
                   <Input
                     id="vehicleImages"
                     type="file"
@@ -466,15 +466,6 @@ export default function AddVehiclePage() {
                     disabled={isUploading}
                   />
                   <p className="text-xs text-muted-foreground">Uploads are converted to WebP and metadata, including location data, is removed.</p>
-                  <Textarea
-                    id="imageUrls"
-                    name="imageUrls"
-                    rows={3}
-                    placeholder='["https://example.com/1.avif","https://example.com/2.avif"]'
-                    value={formState.imageUrls}
-                    onChange={(event) => handleChange("imageUrls", event.target.value)}
-                    required
-                  />
                 </div>
 
                 {alert?.type === "error" ? (
@@ -544,7 +535,7 @@ export default function AddVehiclePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="quickImageUrls">Image URLs</Label>
+                  <Label htmlFor="quickVehicleImages">Vehicle images</Label>
                   <Input
                     id="quickVehicleImages"
                     type="file"
@@ -552,13 +543,6 @@ export default function AddVehiclePage() {
                     multiple
                     onChange={(event) => void handleImageUpload(event.target.files, "quick")}
                     disabled={isUploading}
-                  />
-                  <Textarea
-                    id="quickImageUrls"
-                    rows={3}
-                    placeholder='["https://example.com/1.avif"]'
-                    value={quickImageUrls}
-                    onChange={(event) => setQuickImageUrls(event.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">Uploads are converted to WebP with metadata removed. Images are required to create the draft.</p>
                 </div>
