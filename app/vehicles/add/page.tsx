@@ -155,7 +155,7 @@ export default function AddVehiclePage() {
         </div>
 
         <div className="rounded-3xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
-          <Tabs value={mode} onValueChange={(value) => setMode(value as "manual" | "quick")}> 
+          <Tabs value={mode} onValueChange={(value) => setMode(value as "manual" | "quick")}>
             <TabsList>
               <TabsTrigger value="manual">Manual listing</TabsTrigger>
               <TabsTrigger value="quick">Quick listing</TabsTrigger>
