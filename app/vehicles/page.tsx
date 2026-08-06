@@ -17,13 +17,11 @@ const ITEMS_PER_PAGE = 20;
 type VehicleRow = Database["public"]["Tables"]["vehicles"]["Row"];
 
 export default async function VehiclesPage(props: {
-  searchParams?: Promise<any> | { page?: string | string[] };
+  searchParams?: Promise<any>;
 }) {
   await requireAdminOrLister();
 
-  const searchParams = props.searchParams
-    ? await Promise.resolve(props.searchParams)
-    : undefined;
+  const searchParams = await props.searchParams;
 
   const pageParam = Array.isArray(searchParams?.page)
     ? searchParams.page[0]
