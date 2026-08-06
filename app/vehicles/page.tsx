@@ -16,16 +16,19 @@ const ITEMS_PER_PAGE = 20;
 
 type VehicleRow = Database["public"]["Tables"]["vehicles"]["Row"];
 
-interface VehiclesPageProps {
+export default async function VehiclesPage({
+  searchParams,
+}: {
   searchParams?: {
-    page?: string;
+    page?: string | string[];
   };
-}
-
-export default async function VehiclesPage({ searchParams }: VehiclesPageProps) {
+}) {
   await requireAdminOrLister();
 
-  const page = Math.max(1, Number(searchParams?.page ?? 1));
+  const pageParam = Array.isArray(searchParams?.page)
+    ? searchParams.page[0]
+    : searchParams?.page;
+  const page = Math.max(1, Number(pageParam ?? 1));
   const from = (page - 1) * ITEMS_PER_PAGE;
   const to = from + ITEMS_PER_PAGE - 1;
 
