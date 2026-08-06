@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const locationAliases: Record<string, string> = {
@@ -12,7 +13,21 @@ async function findBrandId(client: SupabaseClient<Database>, value: string) {
   if (UUID_PATTERN.test(value)) return value;
   const { data, error } = await client.from("brands").select("id").ilike("name", value.trim()).limit(1).maybeSingle();
   if (error) throw error;
-  return data?.id ?? null;
+  if (data) return data.id;
+
+  const name = value.trim().replace(/\s+/g, " ");
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  if (!slug) return null;
+
+  // Brands are shared lookup data and only the server uses the service role.
+  // The caller has already passed requireAdminOrLister before this executes.
+  const { data: created, error: createError } = await createServiceRoleClient()
+    .from("brands")
+    .upsert({ name, slug }, { onConflict: "slug" })
+    .select("id")
+    .single();
+  if (createError) throw createError;
+  return created.id;
 }
 
 async function findLocationId(client: SupabaseClient<Database>, value: string) {
