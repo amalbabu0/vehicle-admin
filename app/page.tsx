@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireAdminOrLister } from "@/lib/auth/dal";
 import { logout } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,21 @@ export default async function RootPage() {
               Sign out
             </Button>
           </form>
+        </div>
+
+        <div className="mt-8 rounded-xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">Vehicle inventory</p>
+              <h2 className="mt-2 text-xl font-semibold">Browse your vehicle listings</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Open the vehicle listing page to view active, draft, and sold listings available to your role.
+              </p>
+            </div>
+            <Link href="/vehicles" className="mt-3 md:mt-0">
+              <Button>View all vehicle listings</Button>
+            </Link>
+          </div>
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
