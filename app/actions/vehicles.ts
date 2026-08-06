@@ -28,6 +28,7 @@ export async function createVehicle(_prevState: VehicleActionState, formData: Fo
   const { data: vehicle, error } = await supabase.from("vehicles").insert({
     name: input.name,
     brand_id: input.brand,
+    model: input.model || null,
     registration_year: Number(input.year),
     lease_amount: Number(input.leaseAmount),
     lease_period: input.leasePeriod,
@@ -40,6 +41,7 @@ export async function createVehicle(_prevState: VehicleActionState, formData: Fo
     transmission: input.transmission ?? null,
     km_driven: input.kmDriven ?? null,
     insurance_valid_until: input.insuranceValidUntil ?? null,
+    ownership_count: input.ownershipCount ?? null,
     engine_capacity: input.engineCapacity ?? null,
     seats: input.seats ?? null,
     color: input.color ?? null,

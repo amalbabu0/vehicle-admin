@@ -52,35 +52,47 @@ function numberFrom(value: string | undefined): string | undefined {
   return match?.[0].replace(/[,\s]/g, "") || undefined;
 }
 
+function moneyFrom(value: string | undefined): string | undefined {
+  const match = value?.match(/(\d+(?:\.\d+)?)\s*(lakh|lac|crore|cr|k)?/i);
+  if (!match) return undefined;
+  const amount = Number(match[1]);
+  const multiplier = /^(lakh|lac)$/i.test(match[2] ?? "") ? 100_000
+    : /^(crore|cr)$/i.test(match[2] ?? "") ? 10_000_000
+    : /^k$/i.test(match[2] ?? "") ? 1_000 : 1;
+  return String(Math.round(amount * multiplier));
+}
+
 /** Extracts common labelled and free-form fields from WhatsApp vehicle advertisements. */
 export function parseQuickListing(text: string): QuickListing {
   const normalized = text.replace(/\r/g, "").replace(/\u00a0/g, " ").trim();
   if (!normalized) return {};
-  const lines = normalized.split("\n").map((line) => line.trim()).filter(Boolean);
-  const listingType = /\b(for\s+sale|sale|selling|asking\s+price)\b/i.test(normalized) ? "sale" : "lease";
-  const year = (labelledValue(normalized, ["year", "model year", "registration year"])?.match(/\b(19\d{2}|20\d{2})\b/) ?? normalized.match(/\b(19\d{2}|20\d{2})\b/))?.[1];
-  const vehicleLine = labelledValue(normalized, ["vehicle", "car", "bike", "model", "vehicle name"])
+  const source = normalized.replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, "").replace(/\n\s*\n/g, "\n").trim();
+  const lines = source.split("\n").map((line) => line.trim()).filter(Boolean);
+  const listingType = /\b(for\s+sale|sale|selling|asking\s+price)\b/i.test(source) ? "sale" : "lease";
+  const year = (labelledValue(source, ["year", "model year", "registration year"])?.match(/\b(19\d{2}|20\d{2})\b/) ?? source.match(/\b(19\d{2}|20\d{2})\b/))?.[1];
+  const vehicleLine = labelledValue(source, ["vehicle", "car", "bike", "vehicle name"])
+    ?? lines.find((line) => vehicleBrands.some((brand) => new RegExp(`\\b${brand.replace(" ", "\\s+")}\\b`, "i").test(line)))
     ?? lines.find((line) => /\b(19\d{2}|20\d{2})\b/.test(line) && !/(price|rent|lease|amount|km|phone|contact)/i.test(line))
     ?? lines.find((line) => !/(price|rent|lease|amount|km|phone|contact|location|owner)/i.test(line));
-  const brand = vehicleBrands.find((candidate) => new RegExp(`\\b${candidate.replace(" ", "\\s+")}\\b`, "i").test(vehicleLine ?? normalized));
+  const brand = vehicleBrands.find((candidate) => new RegExp(`\\b${candidate.replace(" ", "\\s+")}\\b`, "i").test(vehicleLine ?? source));
   const name = vehicleLine?.replace(/^[^A-Za-z0-9]*(?:for\s+)?(?:sale|lease)[:\-]?\s*/i, "").trim();
   const model = brand && name ? name.replace(new RegExp(`\\b${brand.replace(" ", "\\s+")}\\b`, "i"), "").replace(/\b(19\d{2}|20\d{2})\b/g, "").replace(/\s+/g, " ").trim() : undefined;
-  const priceText = labelledValue(normalized, ["price", "rent", "lease", "lease amount", "monthly rent", "amount", "asking price"]) ?? normalized.match(/(?:₹|rs\.?|inr)\s*\d[\d,\s]*/i)?.[0];
-  const periodText = labelledValue(normalized, ["period", "lease period", "tenure"]) ?? normalized.match(/\b(?:per\s*(?:month|week|day)|\d+\s*(?:months?|years?|days?))\b/i)?.[0];
-  const phoneText = labelledValue(normalized, ["phone", "mobile", "contact", "call", "whatsapp"]) ?? normalized.match(/(?:\+?\d[\d\s()-]{7,}\d)/)?.[0];
-  const ownerText = labelledValue(normalized, ["owner", "ownership", "seller"]);
-  const directOwner = /\b(direct\s+owner|owner\s+direct|self\s+owner)\b/i.test(normalized) ? true : /\b(agent|dealer|broker|not\s+direct)\b/i.test(ownerText ?? normalized) ? false : undefined;
-  const kmDriven = numberFrom(labelledValue(normalized, ["km", "kms", "kilometers", "odometer"]) ?? normalized.match(/\b\d[\d,]*\s*(?:km|kms|kilometers)\b/i)?.[0]);
+  const priceText = labelledValue(source, ["price", "rent", "lease", "lease amount", "monthly rent", "amount", "asking price"]) ?? source.match(/(?:₹|rs\.?|inr)\s*\d[\d,.\s]*(?:lakh|lac|crore|cr|k)?/i)?.[0];
+  const periodText = labelledValue(source, ["period", "lease period", "tenure"]) ?? source.match(/\b(?:per\s*(?:month|week|day)|\d+\s*(?:months?|years?|days?))\b/i)?.[0];
+  const phoneText = labelledValue(source, ["phone", "mobile", "contact", "call", "whatsapp"]) ?? source.match(/(?:\+?\d[\d\s()-]{7,}\d)/)?.[0];
+  const ownerText = labelledValue(source, ["owner", "ownership", "seller"]);
+  const directOwner = /\b(direct\s+owner|owner\s+direct|self\s+owner)\b/i.test(source) ? true : /\b(agent|dealer|broker|not\s+direct)\b/i.test(ownerText ?? source) ? false : undefined;
+  const kmDriven = numberFrom(labelledValue(source, ["km", "kms", "kilometers", "odometer"]) ?? source.match(/\b\d[\d,]*\s*(?:km|kms|kilometers)\b/i)?.[0]);
   return {
-    listingType, name, brand, model, year, registrationYear: year, leaseAmount: numberFrom(priceText),
+    listingType, name, brand, model, year, registrationYear: year, leaseAmount: moneyFrom(priceText),
     leasePeriod: periodText?.replace(/^per\s+/i, "").trim(), directOwner, contactPhone: phoneText?.replace(/\D/g, ""),
-    serviceChargePercent: numberFrom(labelledValue(normalized, ["service charge", "commission", "brokerage"]) ?? normalized.match(/\b\d+(?:\.\d+)?\s*%/i)?.[0]),
-    locationId: labelledValue(normalized, ["location", "city", "area", "place"]), description: normalized,
-    fuelType: labelledValue(normalized, ["fuel", "fuel type"]) ?? normalized.match(/\b(petrol|diesel|electric|hybrid|cng|lpg)\b/i)?.[1],
-    transmission: labelledValue(normalized, ["transmission", "gearbox"]) ?? normalized.match(/\b(automatic|manual|amt|cvt)\b/i)?.[1],
-    kmDriven, ownershipCount: numberFrom(labelledValue(normalized, ["owners", "owner count", "ownership"])),
-    engineCapacity: labelledValue(normalized, ["engine", "engine capacity", "cc"]) ?? normalized.match(/\b\d{3,5}\s*cc\b/i)?.[0],
-    seats: numberFrom(labelledValue(normalized, ["seats", "seating"])), color: labelledValue(normalized, ["color", "colour"]),
-    condition: labelledValue(normalized, ["condition"]),
+    serviceChargePercent: numberFrom(labelledValue(source, ["service charge", "commission", "brokerage"]) ?? source.match(/\b\d+(?:\.\d+)?\s*%/i)?.[0]),
+    locationId: labelledValue(source, ["location", "city", "area", "place"]), description: source,
+    fuelType: labelledValue(source, ["fuel", "fuel type"]) ?? source.match(/\b(petrol|diesel|electric|hybrid|cng|lpg)\b/i)?.[1],
+    transmission: labelledValue(source, ["transmission", "gearbox"]) ?? source.match(/\b(automatic|manual|amt|cvt)\b/i)?.[1],
+    kmDriven, ownershipCount: numberFrom(labelledValue(source, ["owners", "owner count", "ownership"])),
+    engineCapacity: labelledValue(source, ["engine", "engine capacity", "cc"]) ?? source.match(/\b\d{3,5}\s*cc\b/i)?.[0],
+    seats: numberFrom(labelledValue(source, ["seats", "seating"])), color: labelledValue(source, ["color", "colour"]),
+    condition: labelledValue(source, ["condition"]),
   };
 }

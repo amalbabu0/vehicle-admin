@@ -21,6 +21,7 @@ export async function POST(request: Request) {
   const { data: vehicle, error } = await supabase.from("vehicles").insert({
     name: data.name,
     brand_id: data.brand || null,
+    model: data.model || null,
     registration_year: data.year ? Number(data.year) : null,
     lease_amount: Number(data.leaseAmount),
     lease_period: data.leasePeriod,
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
     transmission: data.transmission || null,
     km_driven: data.kmDriven ?? null,
     insurance_valid_until: data.insuranceValidUntil || null,
+    ownership_count: data.ownershipCount ?? null,
     engine_capacity: data.engineCapacity || null,
     seats: data.seats ?? null,
     color: data.color || null,

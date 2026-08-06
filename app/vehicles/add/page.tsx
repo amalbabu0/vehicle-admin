@@ -41,6 +41,7 @@ export default function AddVehiclePage() {
   const [formState, setFormState] = useState(emptyFormState);
   const [quickText, setQuickText] = useState("");
   const [quickImageUrls, setQuickImageUrls] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -79,6 +80,39 @@ export default function AddVehiclePage() {
       color: parsedQuick.color ?? prev.color,
       condition: parsedQuick.condition ?? prev.condition,
     }));
+  };
+
+  const handleImageUpload = async (files: FileList | null, target: "manual" | "quick") => {
+    if (!files?.length) return;
+    setAlert(null);
+    setIsUploading(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const body = new FormData();
+        body.append("file", file);
+        const response = await fetch("/api/uploads/vehicle-image", { method: "POST", body });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || "Unable to upload image.");
+        uploadedUrls.push(payload.url);
+      }
+
+      const currentValue = target === "manual" ? formState.imageUrls : quickImageUrls;
+      let existingUrls: string[] = [];
+      try {
+        const parsed = JSON.parse(currentValue);
+        existingUrls = Array.isArray(parsed) ? parsed.filter((url): url is string => typeof url === "string") : [];
+      } catch {
+        // Replace malformed manual input with the successfully uploaded URLs.
+      }
+      const nextValue = JSON.stringify([...existingUrls, ...uploadedUrls]);
+      if (target === "manual") handleChange("imageUrls", nextValue);
+      else setQuickImageUrls(nextValue);
+    } catch (error) {
+      setAlert({ type: "error", message: error instanceof Error ? error.message : "Unable to upload image." });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleQuickSubmit = () => {
@@ -423,6 +457,15 @@ export default function AddVehiclePage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="imageUrls">Image URLs</Label>
+                  <Input
+                    id="vehicleImages"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    multiple
+                    onChange={(event) => void handleImageUpload(event.target.files, "manual")}
+                    disabled={isUploading}
+                  />
+                  <p className="text-xs text-muted-foreground">Uploads are converted to WebP and metadata, including location data, is removed.</p>
                   <Textarea
                     id="imageUrls"
                     name="imageUrls"
@@ -446,7 +489,7 @@ export default function AddVehiclePage() {
                   </div>
                 ) : null}
 
-                <Button type="submit" className="w-full" disabled={isPending}>
+                <Button type="submit" className="w-full" disabled={isPending || isUploading}>
                   {isPending ? "Saving…" : "Save as draft"}
                 </Button>
               </form>
@@ -502,6 +545,14 @@ export default function AddVehiclePage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="quickImageUrls">Image URLs</Label>
+                  <Input
+                    id="quickVehicleImages"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    multiple
+                    onChange={(event) => void handleImageUpload(event.target.files, "quick")}
+                    disabled={isUploading}
+                  />
                   <Textarea
                     id="quickImageUrls"
                     rows={3}
@@ -509,7 +560,7 @@ export default function AddVehiclePage() {
                     value={quickImageUrls}
                     onChange={(event) => setQuickImageUrls(event.target.value)}
                   />
-                  <p className="text-xs text-muted-foreground">Images are required to create the draft. Use a JSON array of image URLs.</p>
+                  <p className="text-xs text-muted-foreground">Uploads are converted to WebP with metadata removed. Images are required to create the draft.</p>
                 </div>
 
                 {alert ? (
@@ -523,7 +574,7 @@ export default function AddVehiclePage() {
                     Apply parsed values to form
                   </Button>
                   <Button type="button" onClick={() => setMode("manual")}>Finish in manual form</Button>
-                  <Button type="button" onClick={handleQuickSubmit} disabled={isPending || !canApplyParsed}>
+                  <Button type="button" onClick={handleQuickSubmit} disabled={isPending || isUploading || !canApplyParsed}>
                     {isPending ? "Saving…" : "Create draft"}
                   </Button>
                 </div>

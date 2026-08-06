@@ -491,7 +491,9 @@ export type Database = {
           lease_period: string
           lister_id: string
           location_id: string | null
+          model: string | null
           name: string
+          ownership_count: number | null
           published_at: string | null
           registration_year: number | null
           rejected_reason: string | null
@@ -524,7 +526,9 @@ export type Database = {
           lease_period: string
           lister_id: string
           location_id?: string | null
+          model?: string | null
           name: string
+          ownership_count?: number | null
           published_at?: string | null
           registration_year?: number | null
           rejected_reason?: string | null
@@ -557,7 +561,9 @@ export type Database = {
           lease_period?: string
           lister_id?: string
           location_id?: string | null
+          model?: string | null
           name?: string
+          ownership_count?: number | null
           published_at?: string | null
           registration_year?: number | null
           rejected_reason?: string | null
