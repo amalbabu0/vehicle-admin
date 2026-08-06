@@ -10,20 +10,37 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
+import type { Database } from "@/lib/supabase/database.types";
 
-export default async function VehiclesPage() {
+const ITEMS_PER_PAGE = 20;
+
+type VehicleRow = Database["public"]["Tables"]["vehicles"]["Row"];
+
+interface VehiclesPageProps {
+  searchParams?: {
+    page?: string;
+  };
+}
+
+export default async function VehiclesPage({ searchParams }: VehiclesPageProps) {
   await requireAdminOrLister();
+
+  const page = Math.max(1, Number(searchParams?.page ?? 1));
+  const from = (page - 1) * ITEMS_PER_PAGE;
+  const to = from + ITEMS_PER_PAGE - 1;
+
   const supabase = await createClient();
   const { data: vehicles, error } = await supabase
     .from("vehicles")
-    .select(
-      "id,name,status,lease_amount,lease_period,view_count,created_at"
-    )
-    .order("created_at", { ascending: false });
+    .select("id,name,status,lease_amount,lease_period,view_count,created_at")
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
   if (error) {
     throw new Error("Unable to load vehicle listings.");
   }
+
+  const showPagination = (vehicles?.length ?? 0) === ITEMS_PER_PAGE;
 
   return (
     <main className="flex min-h-screen items-start justify-center p-8">
@@ -58,25 +75,48 @@ export default async function VehiclesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {vehicles?.map((vehicle) => (
-                <TableRow key={vehicle.id}>
-                  <TableCell>{vehicle.name}</TableCell>
-                  <TableCell>{vehicle.status}</TableCell>
-                  <TableCell>₹{vehicle.lease_amount.toLocaleString()}</TableCell>
-                  <TableCell>{vehicle.lease_period}</TableCell>
-                  <TableCell>{vehicle.view_count}</TableCell>
-                  <TableCell>{new Date(vehicle.created_at).toLocaleDateString()}</TableCell>
+              {vehicles?.length ? (
+                vehicles.map((vehicle) => (
+                  <TableRow key={vehicle.id}>
+                    <TableCell>{vehicle.name}</TableCell>
+                    <TableCell>{vehicle.status.replaceAll("_", " ")}</TableCell>
+                    <TableCell>₹{vehicle.lease_amount.toLocaleString("en-IN")}</TableCell>
+                    <TableCell>{vehicle.lease_period}</TableCell>
+                    <TableCell>{vehicle.view_count}</TableCell>
+                    <TableCell>{new Date(vehicle.created_at).toLocaleDateString("en-IN")}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                    No vehicle listings found.
+                  </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
 
-        {vehicles?.length === 0 ? (
-          <div className="rounded-3xl border border-border bg-background/80 p-6 text-sm text-muted-foreground shadow-sm shadow-black/5">
-            No vehicle listings were found for your account.
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border bg-background/80 p-4 text-sm text-muted-foreground shadow-sm shadow-black/5">
+          <p>
+            Showing up to {ITEMS_PER_PAGE} vehicles per page. Only requested columns are loaded for performance.
+          </p>
+          <div className="inline-flex gap-2">
+            <Link href={`/vehicles?page=${Math.max(1, page - 1)}`} className="rounded-lg border border-border bg-muted px-4 py-2 text-sm hover:bg-muted/80">
+              Previous
+            </Link>
+            <span className="px-3 py-2">Page {page}</span>
+            <Link
+              href={`/vehicles?page=${page + 1}`}
+              className={
+                "rounded-lg border border-border bg-muted px-4 py-2 text-sm hover:bg-muted/80 " +
+                (showPagination ? "" : "pointer-events-none opacity-50")
+              }
+            >
+              Next
+            </Link>
           </div>
-        ) : null}
+        </div>
       </div>
     </main>
   );
