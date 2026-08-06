@@ -202,20 +202,3 @@ export async function resetPassword(_prevState: ActionState, formData: FormData)
   redirect("/login");
 }
 
-// ============================================================================
-// Google OAuth
-// ============================================================================
-
-export async function signInWithGoogle() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: `${env.SITE_URL}/auth/callback` },
-  });
-
-  if (error || !data.url) {
-    redirect("/login?error=oauth_failed");
-  }
-
-  redirect(data.url);
-}

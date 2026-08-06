@@ -10,7 +10,7 @@ export default async function RootPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center p-8">
-      <div className="glass-surface glass-specular w-full max-w-4xl rounded-(--glass-radius-lg) p-8">
+      <div className="glass-surface glass-specular w-full max-w-6xl rounded-(--glass-radius-lg) p-8">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">Welcome back</p>
@@ -27,35 +27,79 @@ export default async function RootPage() {
           </form>
         </div>
 
-        <section className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
           <div className="rounded-xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
-            <h2 className="text-xl font-semibold">Your dashboard</h2>
+            <h2 className="text-xl font-semibold">{isAdmin ? "Admin portal overview" : "Lister dashboard overview"}</h2>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               {isAdmin
-                ? "Use this portal to manage the platform, review listings, and approve lister activity. Admin accounts can also update global settings and monitor audit logs."
-                : "Use this portal to manage your own vehicle listings, respond to enquiries, and keep your listing data up to date. Lister accounts only see actions relevant to their own inventory."}
+                ? "This portal is the admin control center for the listing platform. Use it to review lister activity, manage global settings, and enforce the admin allowlist."
+                : "This portal is your lister workspace. Manage your own listings, enquiries, and analytics without access to other listers' data or admin-only functions."}
             </p>
+
+            {!isAdmin ? (
+              <div className="mt-6 rounded-xl border border-border bg-muted/5 p-4 text-sm text-muted-foreground">
+                <p className="font-medium">Lister permissions</p>
+                <ul className="mt-3 list-inside list-disc space-y-2">
+                  <li>Create and manage only your own listings.</li>
+                  <li>Reply to customer enquiries and view linked vehicles.</li>
+                  <li>See analytics only for your own inventory.</li>
+                  <li>Cannot access admin settings or other listers' data.</li>
+                </ul>
+              </div>
+            ) : null}
           </div>
 
           <div className="rounded-xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
-            <h2 className="text-xl font-semibold">Quick start</h2>
+            <h2 className="text-xl font-semibold">Dashboard essentials</h2>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
               {isAdmin ? (
                 <>
-                  <li>• Review lister approvals and audit events.</li>
-                  <li>• Manage site-wide settings and admin email allowlist.</li>
-                  <li>• Monitor pending listings and platform health.</li>
+                  <li>• Review pending listings, approvals, and reported activity.</li>
+                  <li>• Manage site settings, admin allowlist, and user roles.</li>
+                  <li>• Monitor audit logs and platform health.</li>
                 </>
               ) : (
                 <>
-                  <li>• Add or update your vehicle listings.</li>
-                  <li>• Respond to buyer enquiries quickly.</li>
-                  <li>• Keep your profile and contact information current.</li>
+                  <li>• Total Active Listings</li>
+                  <li>• Draft Listings</li>
+                  <li>• Sold Vehicles</li>
+                  <li>• Total Views, Enquiries, and Favorites</li>
+                  <li>• Unread Messages and Recent Activity</li>
+                  <li>• Listing Performance and Quick Actions</li>
                 </>
               )}
             </ul>
           </div>
-        </section>
+        </div>
+
+        {!isAdmin ? (
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            <div className="rounded-xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
+              <h3 className="text-lg font-semibold">Vehicle management</h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Create and manage your lease/sale listings with the fields needed for your business.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm leading-6 text-muted-foreground">
+                <li>• Manual Listing: type, brand, model, year, price/lease, owner, location, contact, service charge, description, images.</li>
+                <li>• Quick Listing: paste WhatsApp ads, auto-extract details, review, upload images, publish.</li>
+                <li>• Save drafts, publish, archive, restore, duplicate, mark sold, and preview your listings.</li>
+              </ul>
+            </div>
+
+            <div className="rounded-xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
+              <h3 className="text-lg font-semibold">Communication & analytics</h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Keep enquiries and listings organised while tracking performance for your own inventory.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm leading-6 text-muted-foreground">
+                <li>• View all enquiries, reply to customers, and manage conversations.</li>
+                <li>• Mark messages read, archive conversations, and close enquiries.</li>
+                <li>• Track views, enquiries, favorites, listing age, and status.</li>
+                <li>• Search and filter your listings by name, status, brand, type, views, and enquiries.</li>
+              </ul>
+            </div>
+          </div>
+        ) : null}
       </div>
     </main>
   );

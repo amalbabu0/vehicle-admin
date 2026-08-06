@@ -1,9 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 
-// Handles both magic-link/password-reset redirects and Google OAuth's code
-// exchange. No role-assignment or auto-provisioning is allowed here; only
-// existing entries in admin_profiles may access the admin portal.
+// Handles password-reset and magic-link callback redirects. No admin
+// role provisioning is allowed here; only existing entries in admin_profiles
+// may access the admin portal.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get("code");
@@ -72,7 +72,6 @@ export async function GET(request: NextRequest) {
     p_action: "login",
     p_entity_type: "auth",
     p_entity_id: data.user.id,
-    p_metadata: { provider: "google" },
   });
 
   return NextResponse.redirect(`${origin}${next}`);
