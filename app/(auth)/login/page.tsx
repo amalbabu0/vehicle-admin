@@ -99,10 +99,7 @@ export default function LoginPage() {
       </form>
 
       <p className="text-muted-foreground mt-6 text-center text-sm">
-        Need a lister account?{" "}
-        <Link href="/register" className="text-foreground hover:underline">
-          Register
-        </Link>
+        Need access? Contact your administrator to create an account.
       </p>
     </>
   );

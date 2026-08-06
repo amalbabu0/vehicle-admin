@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 // Handles both magic-link/password-reset redirects and Google OAuth's code
-// exchange. Same role-assignment policy as app/actions/auth.ts's register()
-// applies here for brand-new Google sign-ups, since they never go through
-// that Server Action.
+// exchange. No role-assignment or auto-provisioning is allowed here; only
+// existing entries in admin_profiles may access the admin portal.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get("code");
@@ -28,37 +27,28 @@ export async function GET(request: NextRequest) {
   }
 
   const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, created_at")
+    .from("admin_profiles")
+    .select("role")
     .eq("id", data.user.id)
     .single();
 
-  if (!profile) {
-    return NextResponse.redirect(`${origin}/login?error=profile_missing`);
-  }
-
-  const isJustCreated = Date.now() - new Date(profile.created_at).getTime() < 10_000;
-
-  if (isJustCreated && profile.role === "user") {
-    const service = createServiceRoleClient();
-    const { count } = await service
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("role", "admin");
-    const role = count === 0 ? "admin" : "lister";
-    await service.from("profiles").update({ role }).eq("id", data.user.id);
-    await supabase.rpc("log_audit_event", {
-      p_action: "register",
-      p_entity_type: "auth",
-      p_entity_id: data.user.id,
-      p_metadata: { provider: "google" },
-    });
-    return NextResponse.redirect(`${origin}${next}`);
-  }
-
-  if (profile.role !== "admin" && profile.role !== "lister") {
+  if (!profile || (profile.role !== "admin" && profile.role !== "lister")) {
     await supabase.auth.signOut();
     return NextResponse.redirect(`${origin}/login?error=no_admin_access`);
+  }
+
+  if (profile.role === "admin") {
+    const { data: setting } = await supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "admin_email")
+      .single();
+
+    const allowedEmail = typeof setting?.value === "string" ? setting.value : null;
+    if (!allowedEmail || data.user.email?.toLowerCase() !== allowedEmail.toLowerCase()) {
+      await supabase.auth.signOut();
+      return NextResponse.redirect(`${origin}/login?error=no_admin_access`);
+    }
   }
 
   await supabase.rpc("log_audit_event", {

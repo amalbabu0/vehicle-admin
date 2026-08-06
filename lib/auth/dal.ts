@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type Profile = Database["public"]["Tables"]["admin_profiles"]["Row"];
 
 /**
  * Data Access Layer — the real authorization boundary, alongside RLS.
@@ -31,7 +31,7 @@ export const getCurrentProfile = cache(async (): Promise<Profile> => {
   const supabase = await createClient();
 
   const { data: profile, error } = await supabase
-    .from("profiles")
+    .from("admin_profiles")
     .select("*")
     .eq("id", user.id)
     .single();

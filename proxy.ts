@@ -12,10 +12,8 @@ import { NextResponse, type NextRequest } from "next/server";
 // the security boundary; it's a UX redirect, not enforcement.
 const PUBLIC_PATHS = [
   "/login",
-  "/register",
   "/forgot-password",
   "/reset-password",
-  "/verify-email",
   "/unauthorized",
   "/auth/callback",
 ];

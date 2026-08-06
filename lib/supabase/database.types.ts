@@ -39,6 +39,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          role: Database["public"]["Enums"]["admin_role"]
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          role: Database["public"]["Enums"]["admin_role"]
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["admin_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -67,15 +97,7 @@ export type Database = {
           id?: string
           metadata?: Json
         }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       brands: {
         Row: {
@@ -161,14 +183,14 @@ export type Database = {
             foreignKeyName: "enquiries_lister_id_fkey"
             columns: ["lister_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "admin_profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "enquiries_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -213,13 +235,6 @@ export type Database = {
             referencedRelation: "enquiries"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "enquiry_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       favorites: {
@@ -246,7 +261,7 @@ export type Database = {
             foreignKeyName: "favorites_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -321,44 +336,6 @@ export type Database = {
           type?: Database["public"]["Enums"]["notification_type"]
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          full_name: string | null
-          id: string
-          phone: string | null
-          role: Database["public"]["Enums"]["user_role"]
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id: string
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string
-        }
         Relationships: []
       }
       reports: {
@@ -397,17 +374,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "reports_reporter_id_fkey"
-            columns: ["reporter_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "reports_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "admin_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -434,6 +404,33 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -577,7 +574,7 @@ export type Database = {
             foreignKeyName: "vehicles_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "admin_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -598,7 +595,7 @@ export type Database = {
             foreignKeyName: "vehicles_lister_id_fkey"
             columns: ["lister_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "admin_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -615,11 +612,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      current_user_role: {
-        Args: never
-        Returns: Database["public"]["Enums"]["user_role"]
-      }
       is_admin: { Args: never; Returns: boolean }
+      is_admin_or_lister: { Args: never; Returns: boolean }
       log_audit_event: {
         Args: {
           p_action: string
@@ -631,6 +625,7 @@ export type Database = {
       }
     }
     Enums: {
+      admin_role: "admin" | "lister"
       enquiry_status: "open" | "archived" | "closed"
       notification_type:
         | "new_enquiry"
@@ -649,7 +644,6 @@ export type Database = {
         | "already_sold"
         | "incorrect_information"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
-      user_role: "admin" | "lister" | "user"
       vehicle_status:
         | "draft"
         | "pending_approval"
@@ -787,6 +781,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      admin_role: ["admin", "lister"],
       enquiry_status: ["open", "archived", "closed"],
       notification_type: [
         "new_enquiry",
@@ -807,7 +802,6 @@ export const Constants = {
         "incorrect_information",
       ],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
-      user_role: ["admin", "lister", "user"],
       vehicle_status: [
         "draft",
         "pending_approval",
