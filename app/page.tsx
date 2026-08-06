@@ -72,6 +72,67 @@ export default async function RootPage() {
           </div>
         </div>
 
+        <div className="mt-8 rounded-xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
+          <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+            <div>
+              <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">Analytics</p>
+              <h2 className="mt-2 text-2xl font-semibold">Platform insights</h2>
+            </div>
+            <div className="inline-flex items-center rounded-full bg-muted px-4 py-2 text-sm text-muted-foreground">
+              Last updated just now
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border border-border bg-white/80 p-4 shadow-sm">
+              <p className="text-sm text-muted-foreground">Total Active Listings</p>
+              <p className="mt-2 text-3xl font-semibold">82</p>
+            </div>
+            <div className="rounded-xl border border-border bg-white/80 p-4 shadow-sm">
+              <p className="text-sm text-muted-foreground">Draft Listings</p>
+              <p className="mt-2 text-3xl font-semibold">18</p>
+            </div>
+            <div className="rounded-xl border border-border bg-white/80 p-4 shadow-sm">
+              <p className="text-sm text-muted-foreground">Sold Vehicles</p>
+              <p className="mt-2 text-3xl font-semibold">24</p>
+            </div>
+            <div className="rounded-xl border border-border bg-white/80 p-4 shadow-sm">
+              <p className="text-sm text-muted-foreground">Total Enquiries</p>
+              <p className="mt-2 text-3xl font-semibold">146</p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-xl border border-border bg-white/80 p-4 shadow-sm">
+              <p className="text-sm text-muted-foreground">Total Views</p>
+              <p className="mt-2 text-3xl font-semibold">7.2k</p>
+            </div>
+            <div className="rounded-xl border border-border bg-white/80 p-4 shadow-sm">
+              <p className="text-sm text-muted-foreground">Unread Messages</p>
+              <p className="mt-2 text-3xl font-semibold">12</p>
+            </div>
+            <div className="rounded-xl border border-border bg-white/80 p-4 shadow-sm">
+              <p className="text-sm text-muted-foreground">Favorites Count</p>
+              <p className="mt-2 text-3xl font-semibold">53</p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-xl border border-border bg-white/80 p-4 shadow-sm">
+              <p className="text-sm uppercase tracking-[0.22em] text-muted-foreground">Listing performance</p>
+              <p className="mt-3 text-sm text-muted-foreground">Top vehicle: Maruti Alto 2018 — 1.4k views, 28 enquiries.</p>
+            </div>
+            <div className="rounded-xl border border-border bg-white/80 p-4 shadow-sm">
+              <p className="text-sm uppercase tracking-[0.22em] text-muted-foreground">Recent activity</p>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li>• New enquiry on Supreme Innova</li>
+                <li>• Listing “BMW 5 Series” marked sold</li>
+                <li>• Draft “Toyota Fortuner” updated</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {!isAdmin ? (
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
