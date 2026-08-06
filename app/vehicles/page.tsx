@@ -56,6 +56,9 @@ export default async function VehiclesPage(props: {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
+              <Link href="/vehicles/add" className="no-underline">
+                <Button>Add vehicle</Button>
+              </Link>
               <Link href="/" className="no-underline">
                 <Button variant="outline">Back to dashboard</Button>
               </Link>
