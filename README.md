@@ -3,7 +3,7 @@
 Admin and Lister portal for the Vehicle Listing Platform. Independent
 repo/Vercel project/domain from the [User Website](../user) — same
 Supabase project, but this app holds the privileged credentials
-(service-role key, Cloudflare Images upload token). See
+(service-role key, R2 write credentials). See
 [`../06-liquid-glass-style.md`](../06-liquid-glass-style.md) for the
 design system and the root-level `NN-*.md` docs for full product specs.
 
@@ -11,8 +11,8 @@ design system and the root-level `NN-*.md` docs for full product specs.
 
 Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui ·
 React Hook Form + Zod · TanStack Query · Zustand · Framer Motion ·
-Supabase (Auth, Postgres, Realtime, Storage, RLS) · Cloudflare Images/CDN
-· Upstash Redis
+Supabase (Auth, Postgres, Realtime, Storage, RLS) · Cloudflare R2 + CDN
+(custom domain) · Upstash Redis
 
 ## Getting started
 
@@ -31,8 +31,11 @@ pnpm dev --port 3000
 
 See [`.env.example`](.env.example) for the full list. Key points:
 
-- `SUPABASE_SERVICE_ROLE_KEY` and `CLOUDFLARE_IMAGES_API_TOKEN` live only
-  here, never in the user app, and never behind `NEXT_PUBLIC_`.
+- `SUPABASE_SERVICE_ROLE_KEY`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY`
+  live only here, never in the user app, and never behind `NEXT_PUBLIC_`.
+- Images are stored in Cloudflare R2, not Cloudflare Images — R2 has a real
+  free tier (10GB storage, 1M writes, 10M reads/month, zero egress) and no
+  subscription requirement. See `lib/r2/`.
 - `lib/env.ts` validates all of these at boot with Zod — a missing/malformed
   var fails immediately with a clear message instead of surfacing as
   `undefined` deep in a request.
@@ -55,6 +58,7 @@ app/
 lib/
   env.ts           Zod-validated server env
   supabase/        browser + server (RLS-scoped) + service-role clients
+  r2/              R2 client, presigned upload URLs, public URL builder
   utils.ts         shadcn's cn() helper
 components/
   ui/              shadcn/ui primitives

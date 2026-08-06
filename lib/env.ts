@@ -4,27 +4,46 @@ import * as z from "zod";
 /**
  * Server-side env schema for the Admin + Lister portal.
  * Fails fast at boot instead of surfacing `undefined` deep in a request.
- * This app holds the privileged keys (service role, Cloudflare upload token) —
+ * This app holds the privileged keys (service role, R2 write credentials) —
  * never import this file from a Client Component.
+ *
+ * None of these are NEXT_PUBLIC_-prefixed, including the 5 that the browser
+ * ultimately needs (SUPABASE_URL, SUPABASE_ANON_KEY, IMAGES_CDN_URL,
+ * TURNSTILE_SITE_KEY, SITE_URL). Those 5 are handed to the client at runtime
+ * via app/api/public-config/route.ts instead of being inlined into the JS
+ * bundle at build time — see components/providers/public-config-provider.tsx.
+ * This does not make them secret (the browser still receives them), it only
+ * changes *when* and *how* — the anon key, Turnstile site key, images CDN
+ * URL, and site URL are meant to be visible to visitors either way.
+ *
+ * Images are stored in Cloudflare R2, not Cloudflare Images (R2 has no
+ * subscription requirement and a real free tier — 10GB storage, 1M writes,
+ * 10M reads/month, zero egress). Resize/format processing (EXIF strip,
+ * compress, AVIF/WebP, thumbnails) happens in our own code with sharp
+ * before upload, since R2 has no built-in transform pipeline. Public
+ * delivery is via a custom domain connected to the bucket (IMAGES_CDN_URL),
+ * which puts it behind Cloudflare's CDN with clean, hash-free URLs.
  */
 const envSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.url(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  SUPABASE_URL: z.url(),
+  SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 
   CLOUDFLARE_ACCOUNT_ID: z.string().min(1),
-  CLOUDFLARE_IMAGES_API_TOKEN: z.string().min(1),
-  NEXT_PUBLIC_CLOUDFLARE_IMAGES_HASH: z.string().min(1),
+  R2_ACCESS_KEY_ID: z.string().min(1),
+  R2_SECRET_ACCESS_KEY: z.string().min(1),
+  R2_BUCKET_NAME: z.string().min(1),
+  // Public custom domain connected to the bucket, e.g. https://cdn.example.com
+  // — no trailing slash. Public object URL = `${IMAGES_CDN_URL}/${key}`.
+  IMAGES_CDN_URL: z.url(),
 
   UPSTASH_REDIS_REST_URL: z.url(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
 
-  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1),
+  TURNSTILE_SITE_KEY: z.string().min(1),
   TURNSTILE_SECRET_KEY: z.string().min(1),
 
-  SESSION_SECRET: z.string().min(32),
-
-  NEXT_PUBLIC_SITE_URL: z.url(),
+  SITE_URL: z.url(),
 });
 
 export type Env = z.infer<typeof envSchema>;
