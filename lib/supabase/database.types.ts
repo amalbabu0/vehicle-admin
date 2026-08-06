@@ -623,7 +623,7 @@ export type Database = {
       log_audit_event: {
         Args: {
           p_action: string
-          p_entity_id: string
+          p_entity_id?: string
           p_entity_type: string
           p_metadata?: Json
         }
