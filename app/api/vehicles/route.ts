@@ -26,9 +26,11 @@ export async function POST(request: Request) {
         : `Location "${data.locationId}" was not found. Use a location available in the system.`,
     }, { status: 400 });
   }
-  const slug = `${data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "vehicle"}-${crypto.randomUUID().slice(0, 8)}`;
+  const name = `${data.brand} ${data.model}`.trim();
+  const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "vehicle"}-${crypto.randomUUID().slice(0, 8)}`;
   const { data: vehicle, error } = await supabase.from("vehicles").insert({
-    name: data.name,
+    name,
+    model: data.model,
     brand_id: brandId,
     registration_year: data.year ? Number(data.year) : null,
     lease_amount: Number(data.leaseAmount),
@@ -38,8 +40,8 @@ export async function POST(request: Request) {
     service_charge_percent: data.serviceChargePercent ?? null,
     location_id: locationId,
     description: data.description || null,
-    fuel_type: data.fuelType || null,
-    transmission: data.transmission || null,
+    fuel_type: data.fuelType,
+    transmission: data.transmission,
     engine_capacity: data.engineCapacity || null,
     condition: data.condition || null,
     features: data.features ? data.features.split(",").map((feature) => feature.trim()) : [],

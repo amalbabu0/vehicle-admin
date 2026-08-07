@@ -7,13 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Combobox, type ComboboxOption } from "@/components/combobox";
-import { parseQuickListing } from "@/lib/validators/vehicle";
+import { parseQuickListing, FUEL_TYPES, TRANSMISSIONS } from "@/lib/validators/vehicle";
 import indiaCarBrands from "@/lib/data/india-car-brands.json";
 
 const emptyFormState = {
   listingType: "lease",
-  name: "",
   brand: "",
   model: "",
   year: "",
@@ -57,7 +57,9 @@ export default function AddVehiclePage() {
   useEffect(() => {
     fetch("/api/locations")
       .then((res) => res.json())
-      .then((payload) => setLocationOptions(payload.options ?? []))
+      .then((payload) =>
+        setLocationOptions((payload.options ?? []).map((option: { id: string; label: string }) => ({ value: option.id, label: option.label })))
+      )
       .catch(() => setLocationOptions([]));
     fetch("/api/brands")
       .then((res) => res.json())
@@ -85,7 +87,6 @@ export default function AddVehiclePage() {
   const handleApplyParsed = () => {
     setFormState((prev) => ({
       ...prev,
-      name: parsedQuick.name ?? prev.name,
       brand: parsedQuick.brand ?? prev.brand,
       model: parsedQuick.model ?? prev.model,
       year: parsedQuick.year ?? prev.year,
@@ -219,32 +220,18 @@ export default function AddVehiclePage() {
 
             <TabsContent value="manual">
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="listingType">Listing type</Label>
-                    <select
-                      id="listingType"
-                      name="listingType"
-                      value={formState.listingType}
-                      onChange={(event) => handleChange("listingType", event.target.value)}
-                      className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    >
-                      <option value="lease">Lease</option>
-                      <option value="sale">Sale</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Vehicle name</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      type="text"
-                      value={formState.name}
-                      onChange={(event) => handleChange("name", event.target.value)}
-                      required
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="listingType">Listing type</Label>
+                  <select
+                    id="listingType"
+                    name="listingType"
+                    value={formState.listingType}
+                    onChange={(event) => handleChange("listingType", event.target.value)}
+                    className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    <option value="lease">Lease</option>
+                    <option value="sale">Sale</option>
+                  </select>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
@@ -368,23 +355,29 @@ export default function AddVehiclePage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="fuelType">Fuel type</Label>
-                    <Input
-                      id="fuelType"
-                      name="fuelType"
-                      type="text"
-                      value={formState.fuelType}
-                      onChange={(event) => handleChange("fuelType", event.target.value)}
-                    />
+                    <Select value={formState.fuelType} onValueChange={(value) => handleChange("fuelType", value)} required>
+                      <SelectTrigger id="fuelType" className="w-full">
+                        <SelectValue placeholder="Select fuel type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FUEL_TYPES.map((option) => (
+                          <SelectItem key={option} value={option}>{option}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="transmission">Transmission</Label>
-                    <Input
-                      id="transmission"
-                      name="transmission"
-                      type="text"
-                      value={formState.transmission}
-                      onChange={(event) => handleChange("transmission", event.target.value)}
-                    />
+                    <Select value={formState.transmission} onValueChange={(value) => handleChange("transmission", value)} required>
+                      <SelectTrigger id="transmission" className="w-full">
+                        <SelectValue placeholder="Select transmission" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TRANSMISSIONS.map((option) => (
+                          <SelectItem key={option} value={option}>{option}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -463,8 +456,10 @@ export default function AddVehiclePage() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="rounded-2xl border border-border bg-muted p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Vehicle name</p>
-                    <p className="mt-2 text-sm text-foreground">{parsedQuick.name || "Not found"}</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Brand / model</p>
+                    <p className="mt-2 text-sm text-foreground">
+                      {[parsedQuick.brand, parsedQuick.model].filter(Boolean).join(" ") || "Not found"}
+                    </p>
                   </div>
                   <div className="rounded-2xl border border-border bg-muted p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Lease amount</p>
@@ -488,6 +483,14 @@ export default function AddVehiclePage() {
                   <div className="rounded-2xl border border-border bg-muted p-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Location</p>
                     <p className="mt-2 text-sm text-foreground">{parsedQuick.locationId || "Not found"}</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-muted p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Fuel type</p>
+                    <p className="mt-2 text-sm text-foreground">{parsedQuick.fuelType || "Not found — select manually"}</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-muted p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Transmission</p>
+                    <p className="mt-2 text-sm text-foreground">{parsedQuick.transmission || "Not found — select manually"}</p>
                   </div>
                 </div>
 

@@ -33,7 +33,7 @@ export default async function VehiclesPage(props: {
   const supabase = await createClient();
   const { data: vehicles, error } = await supabase
     .from("vehicles")
-    .select("id,name,status,lease_amount,lease_period,view_count,created_at")
+    .select("id,name,status,lease_amount,lease_period,fuel_type,transmission,view_count,created_at")
     .order("created_at", { ascending: false })
     .range(from, to);
 
@@ -74,6 +74,8 @@ export default async function VehiclesPage(props: {
                 <TableHead>Status</TableHead>
                 <TableHead>Lease amount</TableHead>
                 <TableHead>Lease period</TableHead>
+                <TableHead>Fuel type</TableHead>
+                <TableHead>Transmission</TableHead>
                 <TableHead>Views</TableHead>
                 <TableHead>Created</TableHead>
               </TableRow>
@@ -86,13 +88,15 @@ export default async function VehiclesPage(props: {
                     <TableCell>{vehicle.status.replaceAll("_", " ")}</TableCell>
                     <TableCell>₹{vehicle.lease_amount.toLocaleString("en-IN")}</TableCell>
                     <TableCell>{vehicle.lease_period}</TableCell>
+                    <TableCell>{vehicle.fuel_type ?? "—"}</TableCell>
+                    <TableCell>{vehicle.transmission ?? "—"}</TableCell>
                     <TableCell>{vehicle.view_count}</TableCell>
                     <TableCell>{new Date(vehicle.created_at).toLocaleDateString("en-IN")}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={8} className="px-4 py-6 text-center text-sm text-muted-foreground">
                     No vehicle listings found.
                   </TableCell>
                 </TableRow>

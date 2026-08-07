@@ -1,10 +1,16 @@
 import * as z from "zod";
 import indiaCarBrands from "@/lib/data/india-car-brands.json";
 
+export const FUEL_TYPES = ["Petrol", "Diesel", "CNG", "LPG", "Electric", "Hybrid", "Hydrogen"] as const;
+
+export const TRANSMISSIONS = [
+  "Manual", "Automatic (AT)", "AMT", "CVT", "DCT", "iMT", "Tiptronic", "Sequential", "Semi-Automatic",
+] as const;
+
 export const vehicleCreateSchema = z.object({
   listingType: z.enum(["lease", "sale"]),
-  name: z.string().min(1, "Vehicle name is required."),
   brand: z.string().min(1, "Brand is required."),
+  model: z.string().min(1, "Model is required."),
   year: z.string().min(1, "Year is required.").regex(/^[0-9]{4}$/, "Enter a valid 4-digit year."),
   leaseAmount: z.string().min(1, "Lease amount is required.").regex(/^[0-9]+$/, "Enter a numeric amount."),
   leasePeriod: z.string().min(1, "Lease period is required."),
@@ -13,8 +19,8 @@ export const vehicleCreateSchema = z.object({
   serviceChargePercent: z.preprocess((value) => value === undefined || value === null || value === "" ? null : Number(value), z.number().min(0).max(100).nullable()),
   locationId: z.string().min(1, "Location is required."),
   description: z.string().optional().nullable(),
-  fuelType: z.string().optional().nullable(),
-  transmission: z.string().optional().nullable(),
+  fuelType: z.enum(FUEL_TYPES, { message: "Select a fuel type." }),
+  transmission: z.enum(TRANSMISSIONS, { message: "Select a transmission." }),
   registrationYear: z.preprocess((value) => value === undefined || value === null || value === "" ? null : Number(value), z.number().int().min(1900).max(new Date().getFullYear()).nullable()),
   engineCapacity: z.string().optional().nullable(),
   condition: z.string().optional().nullable(),
@@ -73,6 +79,25 @@ function labelledValue(text: string, labels: string[]): string | undefined {
   return match?.[1]?.trim().replace(/^[|•·]+|[|•·]+$/g, "") || undefined;
 }
 
+const fuelTypeAliases: Record<string, (typeof FUEL_TYPES)[number]> = {
+  petrol: "Petrol", diesel: "Diesel", cng: "CNG", lpg: "LPG",
+  electric: "Electric", ev: "Electric", hybrid: "Hybrid", hydrogen: "Hydrogen",
+};
+
+const transmissionAliases: Record<string, (typeof TRANSMISSIONS)[number]> = {
+  manual: "Manual", mt: "Manual", automatic: "Automatic (AT)", auto: "Automatic (AT)", at: "Automatic (AT)",
+  amt: "AMT", cvt: "CVT", dct: "DCT", imt: "iMT", tiptronic: "Tiptronic",
+  sequential: "Sequential", "semi-automatic": "Semi-Automatic", "semi automatic": "Semi-Automatic",
+};
+
+function normalizeFuelType(value: string | undefined): (typeof FUEL_TYPES)[number] | undefined {
+  return value ? fuelTypeAliases[value.trim().toLowerCase()] : undefined;
+}
+
+function normalizeTransmission(value: string | undefined): (typeof TRANSMISSIONS)[number] | undefined {
+  return value ? transmissionAliases[value.trim().toLowerCase()] : undefined;
+}
+
 function numberFrom(value: string | undefined): string | undefined {
   const match = value?.match(/\d[\d,\s]*/);
   return match?.[0].replace(/[,\s]/g, "") || undefined;
@@ -125,8 +150,8 @@ export function parseQuickListing(text: string): QuickListing {
     leasePeriod: periodText?.replace(/^per\s+/i, "").trim(), directOwner, contactPhone: phoneText?.replace(/\D/g, ""),
     serviceChargePercent: numberFrom(labelledValue(source, ["service charge", "commission", "brokerage"]) ?? source.match(/\b\d+(?:\.\d+)?\s*%/i)?.[0]),
     locationId: labelledValue(source, ["location", "city", "area", "place"]), description: source,
-    fuelType: labelledValue(source, ["fuel", "fuel type"]) ?? source.match(/\b(petrol|diesel|electric|hybrid|cng|lpg)\b/i)?.[1],
-    transmission: labelledValue(source, ["transmission", "gearbox"]) ?? source.match(/\b(automatic|manual|amt|cvt)\b/i)?.[1],
+    fuelType: normalizeFuelType(labelledValue(source, ["fuel", "fuel type"]) ?? source.match(/\b(petrol|diesel|electric|hybrid|cng|lpg)\b/i)?.[1]),
+    transmission: normalizeTransmission(labelledValue(source, ["transmission", "gearbox"]) ?? source.match(/\b(automatic|manual|amt|cvt|dct|imt|tiptronic)\b/i)?.[1]),
     kmDriven, ownershipCount: numberFrom(labelledValue(source, ["owners", "owner count", "ownership"])),
     engineCapacity: labelledValue(source, ["engine", "engine capacity", "cc"]) ?? source.match(/\b\d{3,5}\s*cc\b/i)?.[0],
     seats: numberFrom(labelledValue(source, ["seats", "seating"])), color: labelledValue(source, ["color", "colour"]),
