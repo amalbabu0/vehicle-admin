@@ -5,6 +5,7 @@ import { Bell, ChevronDown, LogOut, XCircle } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { LISTER_NAV_ITEMS } from "@/lib/lister/nav-items";
 import { ListerMobileNav } from "@/components/lister/lister-mobile-nav";
+import { ListerThemeToggle } from "@/components/lister/lister-theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,9 +30,13 @@ function usePageTitle() {
 export function ListerHeader({
   profile,
   rejectedListings,
+  dark,
+  onToggleDark,
 }: {
   profile: { fullName: string | null; email: string };
   rejectedListings: { id: string; name: string }[];
+  dark: boolean;
+  onToggleDark: () => void;
 }) {
   const title = usePageTitle();
 
@@ -39,6 +44,8 @@ export function ListerHeader({
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-3 backdrop-blur-xl sm:px-4">
       <ListerMobileNav />
       <h1 className="min-w-0 flex-1 truncate text-base font-semibold lg:text-lg">{title}</h1>
+
+      <ListerThemeToggle dark={dark} onToggle={onToggleDark} />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
