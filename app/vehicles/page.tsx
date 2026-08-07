@@ -11,6 +11,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import type { Database } from "@/lib/supabase/database.types";
+import { VehicleStatusActions } from "@/components/vehicle-status-actions";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -78,6 +79,7 @@ export default async function VehiclesPage(props: {
                 <TableHead>Transmission</TableHead>
                 <TableHead>Views</TableHead>
                 <TableHead>Created</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -92,11 +94,14 @@ export default async function VehiclesPage(props: {
                     <TableCell>{vehicle.transmission ?? "—"}</TableCell>
                     <TableCell>{vehicle.view_count}</TableCell>
                     <TableCell>{new Date(vehicle.created_at).toLocaleDateString("en-IN")}</TableCell>
+                    <TableCell>
+                      <VehicleStatusActions id={vehicle.id} status={vehicle.status} />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={9} className="px-4 py-6 text-center text-sm text-muted-foreground">
                     No vehicle listings found.
                   </TableCell>
                 </TableRow>

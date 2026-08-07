@@ -183,7 +183,8 @@ export default function AddVehiclePage() {
 
       const payload = await response.json();
       if (!response.ok) {
-        setAlert({ type: "error", message: payload.message || "Unable to save listing." });
+        const firstError = payload.errors && Object.values(payload.errors).flat()[0];
+        setAlert({ type: "error", message: firstError || payload.message || "Unable to save listing." });
         return;
       }
 
