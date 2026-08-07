@@ -13,7 +13,6 @@ const emptyFormState = {
   listingType: "lease",
   name: "",
   brand: "",
-  model: "",
   year: "",
   leaseAmount: "",
   leasePeriod: "",
@@ -24,13 +23,9 @@ const emptyFormState = {
   description: "",
   fuelType: "",
   transmission: "",
-  kmDriven: "",
   registrationYear: "",
-  insuranceValidUntil: "",
   ownershipCount: "",
   engineCapacity: "",
-  seats: "",
-  color: "",
   condition: "",
   features: "",
   imageUrls: "",
@@ -60,7 +55,6 @@ export default function AddVehiclePage() {
       ...prev,
       name: parsedQuick.name ?? prev.name,
       brand: parsedQuick.brand ?? prev.brand,
-      model: parsedQuick.model ?? prev.model,
       year: parsedQuick.year ?? prev.year,
       leaseAmount: parsedQuick.leaseAmount ?? prev.leaseAmount,
       leasePeriod: parsedQuick.leasePeriod ?? prev.leasePeriod,
@@ -72,12 +66,9 @@ export default function AddVehiclePage() {
       listingType: parsedQuick.listingType ?? prev.listingType,
       fuelType: parsedQuick.fuelType ?? prev.fuelType,
       transmission: parsedQuick.transmission ?? prev.transmission,
-      kmDriven: parsedQuick.kmDriven ?? prev.kmDriven,
       registrationYear: parsedQuick.registrationYear ?? prev.registrationYear,
       ownershipCount: parsedQuick.ownershipCount ?? prev.ownershipCount,
       engineCapacity: parsedQuick.engineCapacity ?? prev.engineCapacity,
-      seats: parsedQuick.seats ?? prev.seats,
-      color: parsedQuick.color ?? prev.color,
       condition: parsedQuick.condition ?? prev.condition,
     }));
   };
@@ -225,7 +216,7 @@ export default function AddVehiclePage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="brand">Brand</Label>
                     <Input
@@ -234,17 +225,6 @@ export default function AddVehiclePage() {
                       type="text"
                       value={formState.brand}
                       onChange={(event) => handleChange("brand", event.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="model">Model</Label>
-                    <Input
-                      id="model"
-                      name="model"
-                      type="text"
-                      value={formState.model}
-                      onChange={(event) => handleChange("model", event.target.value)}
                       required
                     />
                   </div>
@@ -350,7 +330,7 @@ export default function AddVehiclePage() {
                   />
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="fuelType">Fuel type</Label>
                     <Input
@@ -371,30 +351,9 @@ export default function AddVehiclePage() {
                       onChange={(event) => handleChange("transmission", event.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="color">Color</Label>
-                    <Input
-                      id="color"
-                      name="color"
-                      type="text"
-                      value={formState.color}
-                      onChange={(event) => handleChange("color", event.target.value)}
-                    />
-                  </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="kmDriven">KM driven</Label>
-                    <Input
-                      id="kmDriven"
-                      name="kmDriven"
-                      type="text"
-                      inputMode="numeric"
-                      value={formState.kmDriven}
-                      onChange={(event) => handleChange("kmDriven", event.target.value)}
-                    />
-                  </div>
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="registrationYear">Registration year</Label>
                     <Input
@@ -407,20 +366,6 @@ export default function AddVehiclePage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="seats">Seats</Label>
-                    <Input
-                      id="seats"
-                      name="seats"
-                      type="text"
-                      inputMode="numeric"
-                      value={formState.seats}
-                      onChange={(event) => handleChange("seats", event.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
                     <Label htmlFor="ownershipCount">Ownership count</Label>
                     <Input
                       id="ownershipCount"
@@ -429,16 +374,6 @@ export default function AddVehiclePage() {
                       inputMode="numeric"
                       value={formState.ownershipCount}
                       onChange={(event) => handleChange("ownershipCount", event.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="insuranceValidUntil">Insurance valid until</Label>
-                    <Input
-                      id="insuranceValidUntil"
-                      name="insuranceValidUntil"
-                      type="date"
-                      value={formState.insuranceValidUntil}
-                      onChange={(event) => handleChange("insuranceValidUntil", event.target.value)}
                     />
                   </div>
                 </div>

@@ -157,7 +157,7 @@ export default async function RootPage() {
                 Create and manage your lease/sale listings with the fields needed for your business.
               </p>
               <ul className="mt-4 space-y-2 text-sm leading-6 text-muted-foreground">
-                <li>• Manual Listing: type, brand, model, year, price/lease, owner, location, contact, service charge, description, images.</li>
+                <li>• Manual Listing: type, brand, year, price/lease, owner, location, contact, service charge, description, images.</li>
                 <li>• Quick Listing: paste WhatsApp ads, auto-extract details, review, upload images, publish.</li>
                 <li>• Save drafts, publish, archive, restore, duplicate, mark sold, and preview your listings.</li>
               </ul>
