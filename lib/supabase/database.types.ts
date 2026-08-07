@@ -439,7 +439,9 @@ export type Database = {
           created_at: string
           id: string
           is_cover: boolean
+          medium_url: string | null
           sort_order: number
+          thumbnail_url: string | null
           url: string
           vehicle_id: string
         }
@@ -447,7 +449,9 @@ export type Database = {
           created_at?: string
           id?: string
           is_cover?: boolean
+          medium_url?: string | null
           sort_order?: number
+          thumbnail_url?: string | null
           url: string
           vehicle_id: string
         }
@@ -455,7 +459,9 @@ export type Database = {
           created_at?: string
           id?: string
           is_cover?: boolean
+          medium_url?: string | null
           sort_order?: number
+          thumbnail_url?: string | null
           url?: string
           vehicle_id?: string
         }
