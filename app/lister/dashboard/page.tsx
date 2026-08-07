@@ -25,7 +25,7 @@ export default async function ListerDashboardPage() {
       <div className="grid grid-cols-2 gap-3">
         <ListerStatCard label="Total Vehicles" value={stats.total} icon={Car} />
         <ListerStatCard label="Pending" value={stats.pending} icon={Clock} tone="warning" />
-        <ListerStatCard label="Approved" value={stats.approved} icon={CheckCircle2} tone="success" />
+        <ListerStatCard label="Published" value={stats.approved} icon={CheckCircle2} tone="success" />
         <ListerStatCard label="Rejected" value={stats.rejected} icon={XCircle} tone="destructive" />
       </div>
 

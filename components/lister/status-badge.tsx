@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 const STATUS_LABELS: Record<string, string> = {
   draft: "Draft",
   pending_approval: "Pending",
-  published: "Approved",
+  published: "Published",
   rejected: "Rejected",
 };
 

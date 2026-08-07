@@ -9,11 +9,11 @@ export function SuccessStep({ onAddAnother }: { onAddAnother: () => void }) {
         <CheckCircle2 className="size-8" />
       </div>
       <div>
-        <h2 className="text-xl font-semibold">Vehicle submitted successfully</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Your listing has been submitted for review.</p>
+        <h2 className="text-xl font-semibold">Vehicle published successfully</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Your listing is now live on the public site.</p>
       </div>
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
-        Status: Pending Approval
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+        Status: Published
       </span>
 
       <div className="mt-4 flex w-full max-w-xs flex-col gap-2">

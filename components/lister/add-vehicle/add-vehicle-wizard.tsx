@@ -146,16 +146,15 @@ export function AddVehicleWizard() {
         return;
       }
 
-      // Created as "draft" by the API — immediately submit it for review so
-      // it actually enters the admin approval queue rather than sitting
-      // invisibly as a draft (see Phase 4's lister-vehicle-actions.tsx for
-      // the same pending_approval transition and why "publish directly"
-      // is deliberately never offered to listers).
+      // Created as "draft" by the API — immediately publish it. Listers
+      // have full control over their own listings; there's no admin
+      // approval step (see the same "published" transition in
+      // lister-vehicle-actions.tsx).
       if (createPayload.id) {
         await fetch(`/api/vehicles/${createPayload.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "pending_approval" }),
+          body: JSON.stringify({ status: "published" }),
         }).catch(() => {});
       }
 

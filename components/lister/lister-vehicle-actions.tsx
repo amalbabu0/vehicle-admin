@@ -18,15 +18,11 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type VehicleStatus = Database["public"]["Enums"]["vehicle_status"];
 
-// Intentionally narrower than the shared VehicleStatusActions component
-// (used on the admin-facing /vehicles table): that one lets a caller jump
-// straight to "published", which — since /api/vehicles/[id] doesn't check
-// role — meant a lister had no actual way to submit a draft for admin
-// review at all; they could only skip review entirely. This version only
-// ever offers transitions that keep the admin approval step meaningful:
-// draft/rejected/archived -> pending_approval (never straight to
-// published), pending_approval -> draft (withdraw), published -> archived
-// (take down). The shared component and route are untouched.
+// Listers publish their own listings directly — no admin approval step.
+// draft/rejected/archived -> published (Publish), published -> archived
+// (Take down). "pending_approval" isn't something this UI ever puts a
+// listing into; it's only handled here (Withdraw -> draft) in case a
+// listing ends up in that state some other way.
 async function patchStatus(id: string, status: VehicleStatus) {
   const response = await fetch(`/api/vehicles/${id}`, {
     method: "PATCH",
@@ -74,8 +70,8 @@ export function ListerVehicleActions({ id, status }: { id: string; status: Vehic
   return (
     <div className="flex flex-wrap gap-2">
       {(status === "draft" || status === "rejected" || status === "archived") && (
-        <Button size="sm" className="min-h-9" disabled={isPending} onClick={() => run("pending_approval", "Submitted for review.")}>
-          Submit for review
+        <Button size="sm" className="min-h-9" disabled={isPending} onClick={() => run("published", "Listing published.")}>
+          Publish
         </Button>
       )}
       {status === "pending_approval" && (
@@ -99,7 +95,7 @@ export function ListerVehicleActions({ id, status }: { id: string; status: Vehic
           <AlertDialogHeader>
             <AlertDialogTitle>Take this listing down?</AlertDialogTitle>
             <AlertDialogDescription>
-              It will be removed from the public site. You can submit it for review again later.
+              It will be removed from the public site. You can publish it again later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

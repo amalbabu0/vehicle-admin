@@ -89,7 +89,7 @@ export function ReviewStep({
       </ReviewSection>
 
       <p className="text-xs text-muted-foreground">
-        Submitting sends this listing to our team for review. You&apos;ll see it as &ldquo;Pending&rdquo; until it&apos;s approved.
+        Submitting publishes this listing immediately on the public site.
       </p>
     </div>
   );
