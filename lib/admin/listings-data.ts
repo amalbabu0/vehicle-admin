@@ -42,11 +42,16 @@ export type ListingsFilter = {
   search?: string;
 };
 
+// admin_profiles must be disambiguated (!vehicles_lister_id_fkey) — vehicles
+// has two FKs into admin_profiles (lister_id and approved_by), so an
+// unqualified `admin_profiles ( ... )` embed is ambiguous to PostgREST and
+// errors the whole query. That error was going unnoticed here because nothing
+// downstream checked it, silently rendering as "0 listings found".
 const LISTING_SELECT = `
   id, name, slug, model, registration_year, lease_amount, lease_period, fuel_type,
   transmission, status, created_at, location_id, lister_id, km_driven, ownership_count, condition,
   brands ( name ),
-  admin_profiles ( full_name ),
+  admin_profiles!vehicles_lister_id_fkey ( full_name ),
   vehicle_images ( url, is_cover, sort_order )
 `;
 
