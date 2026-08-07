@@ -62,10 +62,18 @@ function toApiPayload(formState: WizardFormState) {
   };
 }
 
-export function AddVehicleWizard() {
+export function AddVehicleWizard({
+  mode = "create",
+  vehicleId,
+  initialState,
+}: {
+  mode?: "create" | "edit";
+  vehicleId?: string;
+  initialState?: WizardFormState;
+}) {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [formState, setFormState] = useState<WizardFormState>(EMPTY_WIZARD_STATE);
+  const [formState, setFormState] = useState<WizardFormState>(initialState ?? EMPTY_WIZARD_STATE);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -134,6 +142,22 @@ export function AddVehicleWizard() {
 
     setIsSubmitting(true);
     try {
+      if (mode === "edit" && vehicleId) {
+        const response = await fetch(`/api/vehicles/${vehicleId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const updatePayload = await response.json();
+        if (!response.ok) {
+          const firstError = updatePayload.errors && Object.values(updatePayload.errors).flat()[0];
+          toast.error((firstError as string) || updatePayload.message || "Unable to update listing.");
+          return;
+        }
+        setSubmitted(true);
+        return;
+      }
+
       const response = await fetch("/api/vehicles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -160,7 +184,7 @@ export function AddVehicleWizard() {
 
       setSubmitted(true);
     } catch {
-      toast.error("Unable to submit listing. Check your connection and try again.");
+      toast.error(mode === "edit" ? "Unable to save changes. Check your connection and try again." : "Unable to submit listing. Check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -174,7 +198,7 @@ export function AddVehicleWizard() {
   };
 
   if (submitted) {
-    return <SuccessStep onAddAnother={handleAddAnother} />;
+    return <SuccessStep mode={mode} onAddAnother={handleAddAnother} />;
   }
 
   return (
@@ -196,7 +220,12 @@ export function AddVehicleWizard() {
             <ChevronLeft className="size-4" /> Back
           </Button>
         ) : (
-          <Button type="button" variant="outline" className="min-h-13 flex-1 gap-1.5" onClick={() => router.push("/lister/dashboard")}>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-13 flex-1 gap-1.5"
+            onClick={() => router.push(mode === "edit" ? "/lister/vehicles" : "/lister/dashboard")}
+          >
             Cancel
           </Button>
         )}
@@ -207,7 +236,7 @@ export function AddVehicleWizard() {
         ) : (
           <Button type="button" className="min-h-13 flex-1 gap-1.5" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
-            {isSubmitting ? "Submitting…" : "Submit"}
+            {isSubmitting ? (mode === "edit" ? "Saving…" : "Submitting…") : mode === "edit" ? "Save changes" : "Submit"}
           </Button>
         )}
       </div>

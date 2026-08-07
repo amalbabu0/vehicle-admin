@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { toast } from "sonner";
+import Link from "next/link";
 import { MapPin, Pencil, ImageOff } from "lucide-react";
 import { StatusBadge } from "@/components/lister/status-badge";
 import { ListerVehicleActions } from "@/components/lister/lister-vehicle-actions";
@@ -58,14 +58,11 @@ export function VehicleCard({
         ) : null}
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="min-h-9 gap-1.5"
-            onClick={() => toast.info("Editing existing listings is coming in a future pass.")}
-          >
-            <Pencil className="size-3.5" /> Edit
-          </Button>
+          <Link href={`/lister/vehicles/${vehicle.id}/edit`} className="no-underline">
+            <Button size="sm" variant="ghost" className="min-h-9 gap-1.5">
+              <Pencil className="size-3.5" /> Edit
+            </Button>
+          </Link>
           {vehicle.status === "published" ? <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} /> : null}
           <ListerVehicleActions id={vehicle.id} status={vehicle.status} />
         </div>

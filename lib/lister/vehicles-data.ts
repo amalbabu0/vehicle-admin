@@ -73,3 +73,83 @@ export async function getListerVehicles(listerId: string): Promise<ListerVehicle
     };
   });
 }
+
+export type ListerVehicleEditData = {
+  id: string;
+  brand: string;
+  model: string | null;
+  year: string;
+  leaseAmount: string;
+  leasePeriod: string;
+  directOwner: boolean;
+  contactPhone: string;
+  serviceChargePercent: string;
+  locationId: string;
+  description: string;
+  fuelType: string;
+  transmission: string;
+  engineCapacity: string;
+  condition: string;
+  features: string;
+  imageUrls: string[];
+};
+
+const VEHICLE_EDIT_SELECT = `
+  id, model, registration_year, lease_amount, lease_period, direct_owner, contact_phone,
+  service_charge_percent, location_id, description, fuel_type, transmission,
+  engine_capacity, condition, features,
+  brands ( name ),
+  vehicle_images ( url, is_cover, sort_order )
+`;
+
+type VehicleEditRow = {
+  id: string;
+  model: string | null;
+  registration_year: number | null;
+  lease_amount: number;
+  lease_period: string;
+  direct_owner: boolean;
+  contact_phone: string;
+  service_charge_percent: number | null;
+  location_id: string | null;
+  description: string | null;
+  fuel_type: string | null;
+  transmission: string | null;
+  engine_capacity: string | null;
+  condition: string | null;
+  features: string[];
+  brands: { name: string } | null;
+  vehicle_images: { url: string; is_cover: boolean; sort_order: number }[];
+};
+
+/** RLS (vehicles_select_own) scopes this to the caller's own vehicle — a
+ * mismatched listerId/id combination simply returns no row, not another
+ * lister's data. */
+export async function getListerVehicleForEdit(id: string, listerId: string): Promise<ListerVehicleEditData | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("vehicles").select(VEHICLE_EDIT_SELECT).eq("id", id).eq("lister_id", listerId).maybeSingle();
+  if (!data) return null;
+
+  const row = data as unknown as VehicleEditRow;
+  const images = [...row.vehicle_images].sort((a, b) => (b.is_cover ? 1 : 0) - (a.is_cover ? 1 : 0) || a.sort_order - b.sort_order);
+
+  return {
+    id: row.id,
+    brand: row.brands?.name ?? "",
+    model: row.model,
+    year: row.registration_year ? String(row.registration_year) : "",
+    leaseAmount: String(row.lease_amount),
+    leasePeriod: row.lease_period,
+    directOwner: row.direct_owner,
+    contactPhone: row.contact_phone,
+    serviceChargePercent: row.service_charge_percent != null ? String(row.service_charge_percent) : "",
+    locationId: row.location_id ?? "",
+    description: row.description ?? "",
+    fuelType: row.fuel_type ?? "",
+    transmission: row.transmission ?? "",
+    engineCapacity: row.engine_capacity ?? "",
+    condition: row.condition ?? "",
+    features: row.features.join(", "),
+    imageUrls: images.map((image) => image.url),
+  };
+}
