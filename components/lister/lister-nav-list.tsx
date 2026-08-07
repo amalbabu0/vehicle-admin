@@ -12,7 +12,7 @@ export function ListerNavList({ collapsed = false, onNavigate }: { collapsed?: b
   return (
     <nav aria-label="Lister navigation" className="flex flex-col gap-1">
       {LISTER_NAV_ITEMS.map((item) => {
-        const active = pathname === item.href || (item.href !== "/vehicles" && pathname.startsWith(`${item.href}/`));
+        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         const link = (
           <Link
             key={item.href}

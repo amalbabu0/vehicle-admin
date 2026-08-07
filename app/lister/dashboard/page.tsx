@@ -38,7 +38,7 @@ export default async function ListerDashboardPage() {
       <div className="rounded-2xl border border-border bg-background p-4 shadow-sm shadow-black/5">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Recent listings</h3>
-          <Link href="/vehicles" className="text-xs font-medium text-primary no-underline">
+          <Link href="/lister/vehicles" className="text-xs font-medium text-primary no-underline">
             View all
           </Link>
         </div>

@@ -51,3 +51,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   return NextResponse.json({ message: "Listing status updated." });
 }
+
+// RLS does the real authorization here: vehicles_delete_own_draft restricts
+// a lister to deleting only their own draft-status vehicles, while
+// vehicles_delete_admin gives admins unrestricted delete — same pattern the
+// admin listings API already uses for its own delete action. vehicle_images
+// rows cascade-delete via their FK; the underlying R2 objects are left
+// orphaned, matching the admin delete action's existing behavior (no R2
+// cleanup happens there either).
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  await requireAdminOrLister();
+  const { id } = await params;
+  const supabase = await createClient();
+  const { error } = await supabase.from("vehicles").delete().eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ message: "Listing deleted." });
+}
