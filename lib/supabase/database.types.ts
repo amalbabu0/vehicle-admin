@@ -618,6 +618,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_brand_vehicle_counts: {
+        Args: never
+        Returns: {
+          brand_id: string
+          vehicle_count: number
+        }[]
+      }
+      get_category_vehicle_counts: {
+        Args: never
+        Returns: {
+          category_id: string
+          vehicle_count: number
+        }[]
+      }
+      get_popular_searches: {
+        Args: { p_limit?: number }
+        Returns: {
+          brand_name: string
+          model: string
+          total_views: number
+        }[]
+      }
       increment_vehicle_view: {
         Args: { p_vehicle_id: string }
         Returns: undefined
@@ -633,6 +655,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       admin_role: "admin" | "lister"
