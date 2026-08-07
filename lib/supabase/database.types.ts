@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -618,6 +618,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      increment_vehicle_view: {
+        Args: { p_vehicle_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       is_admin_or_lister: { Args: never; Returns: boolean }
       log_audit_event: {

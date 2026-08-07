@@ -44,6 +44,10 @@ const envSchema = z.object({
   TURNSTILE_SECRET_KEY: z.string().min(1),
 
   SITE_URL: z.url(),
+  // The PUBLIC user site's URL (different domain from this admin app's own
+  // SITE_URL) — used to build shareable vehicle links, e.g. for WhatsApp
+  // sharing from the vehicle list. No trailing slash.
+  PUBLIC_SITE_URL: z.url(),
 });
 
 export type Env = z.infer<typeof envSchema>;

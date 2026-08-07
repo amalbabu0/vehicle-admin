@@ -10,12 +10,43 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import type { Database } from "@/lib/supabase/database.types";
 import { VehicleStatusActions } from "@/components/vehicle-status-actions";
+import { ShareVehicleMenu } from "@/components/share-vehicle-menu";
+import { buildVehicleShareMessage } from "@/lib/vehicles/share";
+import { getLocationLookup } from "@/lib/vehicles/location-lookup";
+import { env } from "@/lib/env";
+import type { Database } from "@/lib/supabase/database.types";
 
 const ITEMS_PER_PAGE = 20;
 
-type VehicleRow = Database["public"]["Tables"]["vehicles"]["Row"];
+const VEHICLE_LIST_SELECT = `
+  id, name, slug, status, lease_amount, lease_period, fuel_type, transmission,
+  view_count, created_at, model, registration_year, km_driven, ownership_count,
+  condition, location_id,
+  brands ( name ),
+  vehicle_images ( url, is_cover, sort_order )
+`;
+
+type VehicleListRow = {
+  id: string;
+  name: string;
+  slug: string;
+  status: Database["public"]["Enums"]["vehicle_status"];
+  lease_amount: number;
+  lease_period: string;
+  fuel_type: string | null;
+  transmission: string | null;
+  view_count: number;
+  created_at: string;
+  model: string | null;
+  registration_year: number | null;
+  km_driven: number | null;
+  ownership_count: number | null;
+  condition: string | null;
+  location_id: string | null;
+  brands: { name: string } | null;
+  vehicle_images: { url: string; is_cover: boolean; sort_order: number }[];
+};
 
 export default async function VehiclesPage(props: {
   searchParams?: Promise<any>;
@@ -32,17 +63,21 @@ export default async function VehiclesPage(props: {
   const to = from + ITEMS_PER_PAGE - 1;
 
   const supabase = await createClient();
-  const { data: vehicles, error } = await supabase
-    .from("vehicles")
-    .select("id,name,status,lease_amount,lease_period,fuel_type,transmission,view_count,created_at")
-    .order("created_at", { ascending: false })
-    .range(from, to);
+  const [{ data, error }, locations] = await Promise.all([
+    supabase
+      .from("vehicles")
+      .select(VEHICLE_LIST_SELECT)
+      .order("created_at", { ascending: false })
+      .range(from, to),
+    getLocationLookup(),
+  ]);
 
   if (error) {
     throw new Error("Unable to load vehicle listings.");
   }
 
-  const showPagination = (vehicles?.length ?? 0) === ITEMS_PER_PAGE;
+  const vehicles = (data ?? []) as unknown as VehicleListRow[];
+  const showPagination = vehicles.length === ITEMS_PER_PAGE;
 
   return (
     <main className="flex min-h-screen items-start justify-center p-8">
@@ -80,28 +115,58 @@ export default async function VehiclesPage(props: {
                 <TableHead>Views</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Actions</TableHead>
+                <TableHead>Share</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {vehicles?.length ? (
-                vehicles.map((vehicle) => (
-                  <TableRow key={vehicle.id}>
-                    <TableCell>{vehicle.name}</TableCell>
-                    <TableCell>{vehicle.status.replaceAll("_", " ")}</TableCell>
-                    <TableCell>₹{vehicle.lease_amount.toLocaleString("en-IN")}</TableCell>
-                    <TableCell>{vehicle.lease_period}</TableCell>
-                    <TableCell>{vehicle.fuel_type ?? "—"}</TableCell>
-                    <TableCell>{vehicle.transmission ?? "—"}</TableCell>
-                    <TableCell>{vehicle.view_count}</TableCell>
-                    <TableCell>{new Date(vehicle.created_at).toLocaleDateString("en-IN")}</TableCell>
-                    <TableCell>
-                      <VehicleStatusActions id={vehicle.id} status={vehicle.status} />
-                    </TableCell>
-                  </TableRow>
-                ))
+              {vehicles.length ? (
+                vehicles.map((vehicle) => {
+                  const publicUrl = `${env.PUBLIC_SITE_URL}/vehicles/${vehicle.slug}`;
+                  const coverImageUrl =
+                    vehicle.vehicle_images.find((image) => image.is_cover)?.url ??
+                    [...vehicle.vehicle_images].sort((a, b) => a.sort_order - b.sort_order)[0]?.url ??
+                    null;
+                  const message = buildVehicleShareMessage(
+                    {
+                      name: vehicle.name,
+                      brandName: vehicle.brands?.name ?? null,
+                      model: vehicle.model,
+                      registrationYear: vehicle.registration_year,
+                      leaseAmount: vehicle.lease_amount,
+                      leasePeriod: vehicle.lease_period,
+                      fuelType: vehicle.fuel_type,
+                      transmission: vehicle.transmission,
+                      kmDriven: vehicle.km_driven,
+                      ownershipCount: vehicle.ownership_count,
+                      districtName: vehicle.location_id ? locations.get(vehicle.location_id)?.districtName ?? null : null,
+                      condition: vehicle.condition,
+                      slug: vehicle.slug,
+                    },
+                    publicUrl
+                  );
+
+                  return (
+                    <TableRow key={vehicle.id}>
+                      <TableCell>{vehicle.name}</TableCell>
+                      <TableCell>{vehicle.status.replaceAll("_", " ")}</TableCell>
+                      <TableCell>₹{vehicle.lease_amount.toLocaleString("en-IN")}</TableCell>
+                      <TableCell>{vehicle.lease_period}</TableCell>
+                      <TableCell>{vehicle.fuel_type ?? "—"}</TableCell>
+                      <TableCell>{vehicle.transmission ?? "—"}</TableCell>
+                      <TableCell>{vehicle.view_count}</TableCell>
+                      <TableCell>{new Date(vehicle.created_at).toLocaleDateString("en-IN")}</TableCell>
+                      <TableCell>
+                        <VehicleStatusActions id={vehicle.id} status={vehicle.status} />
+                      </TableCell>
+                      <TableCell>
+                        <ShareVehicleMenu message={message} url={publicUrl} imageUrl={coverImageUrl} fileName={vehicle.slug} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={10} className="px-4 py-6 text-center text-sm text-muted-foreground">
                     No vehicle listings found.
                   </TableCell>
                 </TableRow>
