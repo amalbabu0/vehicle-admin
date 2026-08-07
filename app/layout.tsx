@@ -14,7 +14,12 @@ export const metadata: Metadata = {
     template: "%s — Admin Portal",
   },
   description: "Admin and Lister portal for managing vehicle listings.",
-  robots: { index: false, follow: false },
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: { index: false, follow: false, noimageindex: true },
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
