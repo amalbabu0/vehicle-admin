@@ -19,8 +19,10 @@ export const KNOWN_ACTIONS = [
   "user_suspended",
   "user_activated",
   "user_deleted",
+  "settings_updated",
+  "admin_role_changed",
 ] as const;
 
-export const KNOWN_ENTITY_TYPES = ["auth", "vehicle", "user"] as const;
+export const KNOWN_ENTITY_TYPES = ["auth", "vehicle", "user", "site_settings", "admin"] as const;
 
 export type ActorOption = { id: string; name: string };
