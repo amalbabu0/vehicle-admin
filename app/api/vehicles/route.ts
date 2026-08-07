@@ -40,7 +40,6 @@ export async function POST(request: Request) {
     description: data.description,
     fuel_type: data.fuelType || null,
     transmission: data.transmission || null,
-    ownership_count: data.ownershipCount ?? null,
     engine_capacity: data.engineCapacity || null,
     condition: data.condition || null,
     features: data.features ? data.features.split(",").map((feature) => feature.trim()) : [],

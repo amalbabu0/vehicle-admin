@@ -1,18 +1,21 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Combobox, type ComboboxOption } from "@/components/combobox";
 import { parseQuickListing } from "@/lib/validators/vehicle";
+import indiaCarBrands from "@/lib/data/india-car-brands.json";
 
 const emptyFormState = {
   listingType: "lease",
   name: "",
   brand: "",
+  model: "",
   year: "",
   leaseAmount: "",
   leasePeriod: "",
@@ -24,12 +27,22 @@ const emptyFormState = {
   fuelType: "",
   transmission: "",
   registrationYear: "",
-  ownershipCount: "",
   engineCapacity: "",
   condition: "",
   features: "",
   imageUrls: "",
 };
+
+/** Matches free-form parsed location text (e.g. "Malappuram" from a
+ * WhatsApp ad) against the real fetched location options, since
+ * locationId now has to be an actual row id — there's no auto-create
+ * fallback for locations (see lib/vehicles/references.ts). */
+function matchLocationId(parsedText: string | undefined, options: ComboboxOption[]): string | undefined {
+  if (!parsedText?.trim()) return undefined;
+  const needle = parsedText.trim().toLowerCase();
+  return options.find((option) => option.label.toLowerCase().split(" — ")[0] === needle)?.value
+    ?? options.find((option) => option.label.toLowerCase().includes(needle))?.value;
+}
 
 export default function AddVehiclePage() {
   const [mode, setMode] = useState<"manual" | "quick">("manual");
@@ -39,6 +52,26 @@ export default function AddVehiclePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [locationOptions, setLocationOptions] = useState<ComboboxOption[]>([]);
+  const [brandOptions, setBrandOptions] = useState<ComboboxOption[]>([]);
+
+  useEffect(() => {
+    fetch("/api/locations")
+      .then((res) => res.json())
+      .then((payload) => setLocationOptions(payload.options ?? []))
+      .catch(() => setLocationOptions([]));
+    fetch("/api/brands")
+      .then((res) => res.json())
+      .then((payload) =>
+        setBrandOptions((payload.options ?? []).map((option: { label: string }) => ({ value: option.label, label: option.label })))
+      )
+      .catch(() => setBrandOptions([]));
+  }, []);
+
+  const modelOptions = useMemo<ComboboxOption[]>(() => {
+    const brand = indiaCarBrands.brands.find((b) => b.name.toLowerCase() === formState.brand.trim().toLowerCase());
+    return (brand?.models ?? []).map((model) => ({ value: model, label: model }));
+  }, [formState.brand]);
 
   const parsedQuick = useMemo(() => parseQuickListing(quickText), [quickText]);
   const canApplyParsed = Boolean(
@@ -55,19 +88,19 @@ export default function AddVehiclePage() {
       ...prev,
       name: parsedQuick.name ?? prev.name,
       brand: parsedQuick.brand ?? prev.brand,
+      model: parsedQuick.model ?? prev.model,
       year: parsedQuick.year ?? prev.year,
       leaseAmount: parsedQuick.leaseAmount ?? prev.leaseAmount,
       leasePeriod: parsedQuick.leasePeriod ?? prev.leasePeriod,
       directOwner: parsedQuick.directOwner === undefined ? prev.directOwner : String(parsedQuick.directOwner),
       contactPhone: parsedQuick.contactPhone ?? prev.contactPhone,
       serviceChargePercent: parsedQuick.serviceChargePercent ?? prev.serviceChargePercent,
-      locationId: parsedQuick.locationId ?? prev.locationId,
+      locationId: matchLocationId(parsedQuick.locationId, locationOptions) ?? prev.locationId,
       description: parsedQuick.description ?? prev.description,
       listingType: parsedQuick.listingType ?? prev.listingType,
       fuelType: parsedQuick.fuelType ?? prev.fuelType,
       transmission: parsedQuick.transmission ?? prev.transmission,
       registrationYear: parsedQuick.registrationYear ?? prev.registrationYear,
-      ownershipCount: parsedQuick.ownershipCount ?? prev.ownershipCount,
       engineCapacity: parsedQuick.engineCapacity ?? prev.engineCapacity,
       condition: parsedQuick.condition ?? prev.condition,
     }));
@@ -216,16 +249,32 @@ export default function AddVehiclePage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="brand">Brand</Label>
-                    <Input
-                      id="brand"
-                      name="brand"
-                      type="text"
+                    <Combobox
                       value={formState.brand}
-                      onChange={(event) => handleChange("brand", event.target.value)}
-                      required
+                      onChange={(value) => {
+                        handleChange("brand", value);
+                        handleChange("model", "");
+                      }}
+                      options={brandOptions}
+                      placeholder="Select brand"
+                      searchPlaceholder="Search brands…"
+                      allowCustomValue
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="model">Model</Label>
+                    <Combobox
+                      value={formState.model}
+                      onChange={(value) => handleChange("model", value)}
+                      options={modelOptions}
+                      placeholder={formState.brand ? "Select model" : "Select a brand first"}
+                      searchPlaceholder="Search models…"
+                      emptyText="No matching models — type to use a custom one."
+                      allowCustomValue
+                      disabled={!formState.brand}
                     />
                   </div>
                   <div className="space-y-2">
@@ -294,13 +343,13 @@ export default function AddVehiclePage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="locationId">Location</Label>
-                    <Input
-                      id="locationId"
-                      name="locationId"
-                      type="text"
+                    <Combobox
                       value={formState.locationId}
-                      onChange={(event) => handleChange("locationId", event.target.value)}
-                      required
+                      onChange={(value) => handleChange("locationId", value)}
+                      options={locationOptions}
+                      placeholder="Select location"
+                      searchPlaceholder="Search Kerala districts/taluks…"
+                      emptyText="No matching location."
                     />
                   </div>
                   <div className="space-y-2">
@@ -353,29 +402,16 @@ export default function AddVehiclePage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="registrationYear">Registration year</Label>
-                    <Input
-                      id="registrationYear"
-                      name="registrationYear"
-                      type="text"
-                      inputMode="numeric"
-                      value={formState.registrationYear}
-                      onChange={(event) => handleChange("registrationYear", event.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="ownershipCount">Ownership count</Label>
-                    <Input
-                      id="ownershipCount"
-                      name="ownershipCount"
-                      type="text"
-                      inputMode="numeric"
-                      value={formState.ownershipCount}
-                      onChange={(event) => handleChange("ownershipCount", event.target.value)}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="registrationYear">Registration year</Label>
+                  <Input
+                    id="registrationYear"
+                    name="registrationYear"
+                    type="text"
+                    inputMode="numeric"
+                    value={formState.registrationYear}
+                    onChange={(event) => handleChange("registrationYear", event.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2">

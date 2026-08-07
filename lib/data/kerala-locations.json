@@ -1,0 +1,60 @@
+{
+  "districts": [
+    {
+      "name": "Thiruvananthapuram",
+      "taluks": ["Neyyattinkara", "Kattakkada", "Nedumangad", "Thiruvananthapuram", "Chirayinkeezhu", "Varkala"]
+    },
+    {
+      "name": "Kollam",
+      "taluks": ["Kollam", "Kunnathoor", "Karunagappally", "Kottarakkara", "Punalur", "Pathanapuram"]
+    },
+    {
+      "name": "Pathanamthitta",
+      "taluks": ["Adoor", "Konni", "Kozhencherry", "Ranni", "Mallappally", "Thiruvalla"]
+    },
+    {
+      "name": "Alappuzha",
+      "taluks": ["Chenganoor", "Mavelikkara", "Karthikappally", "Kuttanad", "Ambalappuzha", "Cherthala"]
+    },
+    {
+      "name": "Kottayam",
+      "taluks": ["Changanasserry", "Kottayam", "Vaikom", "Meenachil", "Kanjirappally"]
+    },
+    {
+      "name": "Idukki",
+      "taluks": ["Peermade", "Udumbanchola", "Idukki", "Thodupuzha", "Devikulam"]
+    },
+    {
+      "name": "Ernakulam",
+      "taluks": ["Kothamangalam", "Muvattupuzha", "Kunnathunad", "Kanayannur", "Kochi", "North Paravur", "Aluva"]
+    },
+    {
+      "name": "Thrissur",
+      "taluks": ["Chalakudy", "Mukundapuram", "Kodungallur", "Thrissur", "Chavakkad", "Kunnamkulam", "Thalapilly"]
+    },
+    {
+      "name": "Palakkad",
+      "taluks": ["Alathoor", "Chittur", "Palakkad", "Pattambi", "Ottappalam", "Mannarkkad", "Attappady"]
+    },
+    {
+      "name": "Malappuram",
+      "taluks": ["Perinthalmanna", "Nilambur", "Eranad", "Kondotty", "Ponnani", "Tirur", "Tirurangadi"]
+    },
+    {
+      "name": "Kozhikode",
+      "taluks": ["Kozhikode", "Thamarassery", "Koyilandy", "Vatakara"]
+    },
+    {
+      "name": "Wayanad",
+      "taluks": ["Vythiri", "Sulthan Bathery", "Mananthavadi"]
+    },
+    {
+      "name": "Kannur",
+      "taluks": ["Thalassery", "Iritty", "Kannur", "Taliparamba", "Payyanur"]
+    },
+    {
+      "name": "Kasaragod",
+      "taluks": ["Hosdurg", "Vellarikund", "Kasaragod", "Manjeshwaram"]
+    }
+  ]
+}

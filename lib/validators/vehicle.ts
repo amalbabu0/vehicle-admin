@@ -15,7 +15,6 @@ export const vehicleCreateSchema = z.object({
   fuelType: z.string().optional().nullable(),
   transmission: z.string().optional().nullable(),
   registrationYear: z.preprocess((value) => value === undefined || value === null || value === "" ? null : Number(value), z.number().int().min(1900).max(new Date().getFullYear()).nullable()),
-  ownershipCount: z.preprocess((value) => value === undefined || value === null || value === "" ? null : Number(value), z.number().int().nonnegative().nullable()),
   engineCapacity: z.string().optional().nullable(),
   condition: z.string().optional().nullable(),
   features: z.string().optional().nullable(),
