@@ -1,28 +1,24 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import type { Database } from "@/lib/supabase/database.types";
 
 type VehicleStatus = Database["public"]["Enums"]["vehicle_status"];
 
-// Listers publish their own listings directly — no admin approval step.
-// draft/rejected/archived -> published (Publish), published -> archived
-// (Take down). "pending_approval" isn't something this UI ever puts a
-// listing into; it's only handled here (Withdraw -> draft) in case a
-// listing ends up in that state some other way.
+/** The single bottom-left status-transition button on a vehicle card — one
+ * action at a time, chosen by current status:
+ *   draft/archived -> Publish/Republish (published directly; these are the
+ *     lister's own voluntary states, no review needed to go live)
+ *   published -> Withdraw (pending_approval; pulls it off the public site
+ *     and back into the normal review workflow rather than archiving it)
+ *   rejected -> Resubmit (pending_approval; an admin already said no once,
+ *     so this asks for review again rather than silently republishing)
+ *   pending_approval -> nothing shown; only Edit/Delete/Share apply
+ * Delete lives in the card's dropdown menu (vehicle-card-menu.tsx), not
+ * here. */
 async function patchStatus(id: string, status: VehicleStatus) {
   const response = await fetch(`/api/vehicles/${id}`, {
     method: "PATCH",
@@ -38,13 +34,11 @@ async function patchStatus(id: string, status: VehicleStatus) {
 export function ListerVehicleActions({ id, status }: { id: string; status: VehicleStatus }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [confirmTakeDown, setConfirmTakeDown] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const run = (status: VehicleStatus, successMessage: string) => {
+  const run = (nextStatus: VehicleStatus, successMessage: string) => {
     startTransition(async () => {
       try {
-        await patchStatus(id, status);
+        await patchStatus(id, nextStatus);
         toast.success(successMessage);
         router.refresh();
       } catch (error) {
@@ -53,79 +47,43 @@ export function ListerVehicleActions({ id, status }: { id: string; status: Vehic
     });
   };
 
-  const deleteVehicle = () => {
-    startTransition(async () => {
-      const response = await fetch(`/api/vehicles/${id}`, { method: "DELETE" });
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        toast.error(payload.message || "Unable to delete listing.");
-        return;
-      }
-      toast.success("Listing deleted.");
-      setConfirmDelete(false);
-      router.refresh();
-    });
-  };
+  if (status === "draft") {
+    return (
+      <Button size="sm" className="min-h-12 active:scale-95" disabled={isPending} onClick={() => run("published", "Listing published.")}>
+        Publish
+      </Button>
+    );
+  }
 
-  return (
-    <div className="flex flex-wrap gap-2">
-      {(status === "draft" || status === "rejected" || status === "archived") && (
-        <Button size="sm" className="min-h-9" disabled={isPending} onClick={() => run("published", "Listing published.")}>
-          Publish
-        </Button>
-      )}
-      {status === "pending_approval" && (
-        <Button size="sm" variant="outline" className="min-h-9" disabled={isPending} onClick={() => run("draft", "Withdrawn to draft.")}>
-          Withdraw
-        </Button>
-      )}
-      {status === "published" && (
-        <Button size="sm" variant="outline" className="min-h-9" disabled={isPending} onClick={() => setConfirmTakeDown(true)}>
-          Take down
-        </Button>
-      )}
-      {status === "draft" && (
-        <Button size="sm" variant="ghost" className="min-h-9 text-destructive hover:text-destructive" disabled={isPending} onClick={() => setConfirmDelete(true)}>
-          Delete
-        </Button>
-      )}
+  if (status === "archived") {
+    return (
+      <Button size="sm" className="min-h-12 active:scale-95" disabled={isPending} onClick={() => run("published", "Listing republished.")}>
+        Republish
+      </Button>
+    );
+  }
 
-      <AlertDialog open={confirmTakeDown} onOpenChange={setConfirmTakeDown}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Take this listing down?</AlertDialogTitle>
-            <AlertDialogDescription>
-              It will be removed from the public site. You can publish it again later.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                run("archived", "Listing taken down.");
-                setConfirmTakeDown(false);
-              }}
-            >
-              Take down
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+  if (status === "rejected") {
+    return (
+      <Button size="sm" className="min-h-12 active:scale-95" disabled={isPending} onClick={() => run("pending_approval", "Resubmitted for review.")}>
+        Resubmit
+      </Button>
+    );
+  }
 
-      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this draft?</AlertDialogTitle>
-            <AlertDialogDescription>This permanently removes the draft and its images. This cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteVehicle} disabled={isPending}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
+  if (status === "published") {
+    return (
+      <Button
+        size="sm"
+        variant="outline"
+        className="min-h-12 border-amber-500/40 text-amber-700 hover:bg-amber-500/10 active:scale-95 dark:text-amber-400"
+        disabled={isPending}
+        onClick={() => run("pending_approval", "Listing withdrawn — it's back in the review queue.")}
+      >
+        Withdraw
+      </Button>
+    );
+  }
+
+  return null;
 }

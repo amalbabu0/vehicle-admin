@@ -1,3 +1,4 @@
+import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -5,6 +6,8 @@ const STATUS_LABELS: Record<string, string> = {
   pending_approval: "Pending",
   published: "Published",
   rejected: "Rejected",
+  archived: "Archived",
+  sold: "Sold",
 };
 
 const STATUS_CLASSES: Record<string, string> = {
@@ -12,12 +15,22 @@ const STATUS_CLASSES: Record<string, string> = {
   pending_approval: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   published: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
   rejected: "bg-destructive/15 text-destructive",
+  archived: "bg-muted text-muted-foreground",
+  sold: "bg-muted text-muted-foreground",
 };
 
 export function StatusBadge({ status }: { status: string }) {
   return (
     <Badge className={STATUS_CLASSES[status] ?? "bg-muted text-muted-foreground"}>
       {STATUS_LABELS[status] ?? status.replaceAll("_", " ")}
+    </Badge>
+  );
+}
+
+export function FeaturedBadge() {
+  return (
+    <Badge className="gap-1 bg-blue-500/15 text-blue-700 dark:text-blue-400">
+      <Star className="size-3 fill-current" /> Featured
     </Badge>
   );
 }

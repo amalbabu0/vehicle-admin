@@ -20,7 +20,7 @@ export default async function ListerVehiclesPage() {
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">{vehicles.length} listing{vehicles.length === 1 ? "" : "s"}</p>
         <Link href="/lister/vehicles/add" className="no-underline">
-          <Button size="sm" className="min-h-10 gap-1.5">
+          <Button size="sm" className="min-h-12 gap-1.5">
             <PlusCircle className="size-4" /> Add
           </Button>
         </Link>
@@ -29,13 +29,10 @@ export default async function ListerVehiclesPage() {
       {vehicles.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center">
           <PackageOpen className="size-10 text-muted-foreground" />
-          <div>
-            <p className="font-medium">No vehicles yet</p>
-            <p className="mt-1 text-sm text-muted-foreground">List your first vehicle for lease to get started.</p>
-          </div>
+          <p className="font-medium">No vehicles found.</p>
           <Link href="/lister/vehicles/add" className="no-underline">
-            <Button className="mt-2 min-h-11 gap-1.5">
-              <PlusCircle className="size-4" /> Add Vehicle
+            <Button className="mt-2 min-h-12 gap-1.5">
+              <PlusCircle className="size-4" /> Add Your First Vehicle
             </Button>
           </Link>
         </div>

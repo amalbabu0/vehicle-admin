@@ -15,6 +15,7 @@ export type ListerVehicleRow = {
   leaseAmount: number;
   leasePeriod: string;
   status: VehicleStatus;
+  featured: boolean;
   rejectedReason: string | null;
   districtName: string | null;
   coverImageUrl: string | null;
@@ -48,11 +49,16 @@ type VehicleRow = {
  * dashboard-data.ts, no service-role client needed. */
 export async function getListerVehicles(listerId: string): Promise<ListerVehicleRow[]> {
   const supabase = await createClient();
-  const [{ data }, locations] = await Promise.all([
+  const [{ data }, locations, { data: featuredSetting }] = await Promise.all([
     supabase.from("vehicles").select(VEHICLE_SELECT).eq("lister_id", listerId).order("created_at", { ascending: false }),
     getLocationLookup(),
+    // site_settings is publicly readable (RLS: using (true)), so this is a
+    // plain select through the normal client, same admin-owned mechanism
+    // the admin dashboard's Feature/Unfeature action already writes to.
+    supabase.from("site_settings").select("value").eq("key", "featured_listing_ids").maybeSingle(),
   ]);
 
+  const featuredIds = new Set(Array.isArray(featuredSetting?.value) ? (featuredSetting.value as string[]) : []);
   const rows = (data ?? []) as unknown as VehicleRow[];
 
   return rows.map((row) => {
@@ -66,6 +72,7 @@ export async function getListerVehicles(listerId: string): Promise<ListerVehicle
       leaseAmount: row.lease_amount,
       leasePeriod: row.lease_period,
       status: row.status,
+      featured: featuredIds.has(row.id),
       rejectedReason: row.rejected_reason,
       districtName: row.location_id ? (locations.get(row.location_id)?.districtName ?? null) : null,
       coverImageUrl: cover?.url ?? null,

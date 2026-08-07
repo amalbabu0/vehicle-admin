@@ -50,6 +50,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   await notifyPublicSiteToRevalidate(vehicle.slug);
+  // log_audit_event's actor_id is auth.uid() — accurately attributes this
+  // to whichever lister or admin made the change, same RPC every other
+  // status-changing action in this app already uses.
+  await supabase.rpc("log_audit_event", { p_action: "vehicle_status_changed", p_entity_type: "vehicle", p_entity_id: id, p_metadata: { status } });
 
   return NextResponse.json({ message: "Listing status updated." });
 }
