@@ -632,6 +632,20 @@ export type Database = {
           vehicle_count: number
         }[]
       }
+      get_daily_listing_counts: {
+        Args: { p_days?: number }
+        Returns: {
+          day: string
+          listing_count: number
+        }[]
+      }
+      get_daily_user_counts: {
+        Args: { p_days?: number }
+        Returns: {
+          day: string
+          user_count: number
+        }[]
+      }
       get_district_vehicle_counts: {
         Args: never
         Returns: {
