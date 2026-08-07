@@ -632,12 +632,40 @@ export type Database = {
           vehicle_count: number
         }[]
       }
+      get_district_vehicle_counts: {
+        Args: never
+        Returns: {
+          district_name: string
+          vehicle_count: number
+        }[]
+      }
+      get_fuel_type_distribution: {
+        Args: never
+        Returns: {
+          fuel_type: string
+          vehicle_count: number
+        }[]
+      }
       get_popular_searches: {
         Args: { p_limit?: number }
         Returns: {
           brand_name: string
           model: string
           total_views: number
+        }[]
+      }
+      get_transmission_distribution: {
+        Args: never
+        Returns: {
+          transmission: string
+          vehicle_count: number
+        }[]
+      }
+      get_vehicle_status_distribution: {
+        Args: never
+        Returns: {
+          status: Database["public"]["Enums"]["vehicle_status"]
+          vehicle_count: number
         }[]
       }
       increment_vehicle_view: {
