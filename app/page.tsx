@@ -148,12 +148,11 @@ export default async function RootPage() {
           <div className="rounded-xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
             <h3 className="text-lg font-semibold">Vehicle management</h3>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              Create and manage your lease/sale listings with the fields needed for your business.
+              Create and manage your lease listings with the fields needed for your business.
             </p>
             <ul className="mt-4 space-y-2 text-sm leading-6 text-muted-foreground">
-              <li>• Manual Listing: type, brand, year, price/lease, owner, location, contact, service charge, description, images.</li>
-              <li>• Quick Listing: paste WhatsApp ads, auto-extract details, review, upload images, publish.</li>
-              <li>• Save drafts, publish, archive, restore, duplicate, mark sold, and preview your listings.</li>
+              <li>• Add a listing: brand, year, lease amount and period, owner, location, contact, service charge, description, images.</li>
+              <li>• Track each listing&apos;s approval status and share it once it&apos;s published.</li>
             </ul>
           </div>
 

@@ -11,7 +11,6 @@ import { FUEL_TYPES, TRANSMISSIONS } from "@/lib/validators/vehicle";
 import indiaCarBrands from "@/lib/data/india-car-brands.json";
 
 const emptyFormState = {
-  listingType: "lease",
   brand: "",
   model: "",
   year: "",
@@ -126,9 +125,9 @@ export default function AddVehiclePage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">New listing</p>
-              <h1 className="mt-2 text-3xl font-semibold">Add vehicle</h1>
+              <h1 className="mt-2 text-3xl font-semibold">List your vehicle for lease</h1>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Create a listing manually.
+                Every listing you submit here is created as a lease listing.
               </p>
             </div>
             <Link href="/vehicles" className="no-underline">
@@ -139,20 +138,6 @@ export default function AddVehiclePage() {
 
         <div className="rounded-3xl border border-border bg-background/80 p-6 shadow-sm shadow-black/5 backdrop-blur-xl">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="listingType">Listing type</Label>
-              <select
-                id="listingType"
-                name="listingType"
-                value={formState.listingType}
-                onChange={(event) => handleChange("listingType", event.target.value)}
-                className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <option value="lease">Lease</option>
-                <option value="sale">Sale</option>
-              </select>
-            </div>
-
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="brand">Brand</Label>

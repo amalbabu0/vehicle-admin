@@ -7,7 +7,6 @@ export const TRANSMISSIONS = [
 ] as const;
 
 export const vehicleCreateSchema = z.object({
-  listingType: z.enum(["lease", "sale"]),
   brand: z.string().min(1, "Brand is required."),
   model: z.string().min(1, "Model is required."),
   year: z.string().min(1, "Year is required.").regex(/^[0-9]{4}$/, "Enter a valid 4-digit year."),
