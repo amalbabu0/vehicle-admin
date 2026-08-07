@@ -100,4 +100,7 @@ See `SECURITY.md` for the full admin-app hardening.
 - ✅ `sitemap.ts` / `robots.ts` in the user app.
 - ✅ Clean slugs: `/vehicles/[slug]`, not a query-param id.
 - ✅ Custom domain already in place (`keralaleasehub.online` / `ctl.keralaleasehub.online`) — not on `.vercel.app`.
-- ⚠️ Admin noindex is currently a `<meta name="robots">` tag only (`admin/app/layout.tsx`), not an `X-Robots-Tag` HTTP header — the header is the more robust mechanism this doc calls for. Tracked as a fix.
+- ✅ Admin noindex: both the `<meta name="robots">` tag (`admin/app/layout.tsx`) and
+  an `X-Robots-Tag: noindex, nofollow` HTTP header on every response
+  (`admin/next.config.ts` `headers()`) — the header is the more robust mechanism
+  (applies before HTML parses, covers non-HTML responses too).

@@ -217,7 +217,10 @@ recorded here rather than silently drifting from the doc:
   exist in the schema (migration 0001/0004) for this, unused by either app's UI so far.
 - **Favorites**: built, matches the doc's `favorites` table shape.
 - ✅ Two Vercel projects, two domains, one Supabase project — matches this doc exactly.
-- ⚠️ No admin→public on-demand revalidation signal yet (relies on the vehicle detail
-  page's 120s time-based ISR window instead). Tracked as a fix — see `PERFORMANCE.md`.
+- ✅ Admin→public revalidation signal: `PATCH /api/vehicles/[id]` (status change)
+  calls the user app's `POST /api/revalidate` with a shared secret right after the DB
+  write, best-effort/non-blocking. See `PERFORMANCE.md`'s "Status" section for the
+  larger caching fix this was built on top of (most pages are now genuinely static,
+  not just relying on a time window).
 - ➖ Connection pooler: not applicable — both apps use Supabase's REST API
   (PostgREST), never a raw Postgres connection, so there's no pooler to route through.

@@ -48,6 +48,11 @@ const envSchema = z.object({
   // SITE_URL) — used to build shareable vehicle links, e.g. for WhatsApp
   // sharing from the vehicle list. No trailing slash.
   PUBLIC_SITE_URL: z.url(),
+  // Shared secret with the user app's POST /api/revalidate — must match its
+  // REVALIDATE_SECRET exactly. Lets a status change here instantly refresh
+  // the cached public vehicle page instead of waiting out its revalidate
+  // window.
+  REVALIDATE_SECRET: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

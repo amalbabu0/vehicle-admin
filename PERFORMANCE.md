@@ -163,8 +163,6 @@ indexing, pagination, code-splitting) Claude verifies against on every change.
   max-age=31536000, immutable`, unique-per-upload keys (never overwrites a cached
   URL), `next/image` for on-demand responsive resizing on the read side.
 - ✅ CDN in front of R2 via a Cloudflare custom domain.
-- ✅ Rendering: Server Components throughout; `revalidate = 120` (time-based ISR) on
-  the vehicle detail page.
 - ✅ DB indexes on every filter/sort column actually used (brand, category, location,
   status, fuel type, transmission, year, price range, plus trigram indexes for the
   ILIKE text search) — see vehicle-admin migrations 0001–0014.
@@ -172,12 +170,33 @@ indexing, pagination, code-splitting) Claude verifies against on every change.
   aggregate RPC.
 - ✅ Search-box debounce (400ms) on the filter sidebar.
 - ✅ Redis (Upstash) already wired for auth rate-limiting.
-- ⚠️ Pagination is currently offset-based (`.range()`) on `/vehicles` search and
-  `/favorites`, not cursor-based. Tracked as a fix — matters less at this project's
-  scale but is cheap to adopt early per this doc's own note.
-- ⚠️ No on-demand revalidation signal from admin edits yet — the public vehicle page
-  relies on the 120s time-based window rather than an instant admin→public refresh.
-  Tracked as a fix.
+- ✅ Cursor (keyset) pagination on `/vehicles` search and `/favorites` — see
+  `lib/utils/cursor.ts`.
+- ✅ **Rendering/caching — corrected after initial audit found a real bug**: every
+  page rendered `<Navbar/>`, which called `supabase.auth.getUser()` server-side via
+  the cookie-bound client. In Next.js App Router, using a Dynamic API (`cookies()`)
+  anywhere in a route's render tree forces the *whole route* to render fresh on every
+  request, silently ignoring any `revalidate` export. So `revalidate = 120` on the
+  vehicle detail page had been inert the entire time — every page, including that
+  one, was fully dynamic (DB hit on every request, zero CDN caching) purely because
+  of the navbar's auth check.
+  Fixed by: a cookie-free `createPublicClient()` (`lib/supabase/public-client.ts`)
+  for all reads that don't depend on who's asking; moving Navbar's auth state to a
+  client-side fetch (`components/navbar-client.tsx`, via `/api/favorites/ids`-style
+  progressive enhancement) instead of a server-side cookie read; a
+  `FavoritesProvider` client context so favorited-heart state resolves client-side
+  instead of blocking the page; and moving the one remaining `searchParams` read
+  (a legacy OAuth-redirect-catch check) out of the homepage into `proxy.ts`.
+  Verified via `next build` output, not assumed: `/`, `/about`, `/contact`, `/sell`,
+  `/privacy`, `/terms`, `/sitemap.xml` are now `○` (fully static), and
+  `/vehicles/[slug]` is `●` (SSG via `generateStaticParams`, `revalidate = 120`).
+  `/vehicles` (search) and `/favorites` remain intentionally dynamic — they're
+  inherently parameterized/personalized, nothing to cache there.
+- ✅ On-demand revalidation: the admin app's status-update route
+  (`PATCH /api/vehicles/[id]`) calls the user app's `POST /api/revalidate` (shared
+  secret, best-effort/non-blocking) right after a publish/archive/sold change, so the
+  cached vehicle page and homepage refresh instantly instead of waiting out the 120s
+  window.
 - ➖ Connection pooling: not applicable as currently built — both apps talk to
   Postgres exclusively through Supabase's REST API (PostgREST), never a raw
   `postgres://` connection, so there's no app-held connection pool to route through a
