@@ -18,12 +18,14 @@ export function VehicleCard({
   shareUrl: string;
 }) {
   const isPublished = vehicle.status === "published";
+  const cardImageUrl = vehicle.coverThumbnailUrl ?? vehicle.coverImageUrl;
+  const altText = [vehicle.name, vehicle.registrationYear, vehicle.districtName ? `in ${vehicle.districtName}` : null].filter(Boolean).join(" ");
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm shadow-black/5 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="relative aspect-video w-full bg-muted">
-        {vehicle.coverImageUrl ? (
-          <Image src={vehicle.coverImageUrl} alt={vehicle.name} fill sizes="(max-width: 640px) 100vw, 340px" className="object-cover" />
+        {cardImageUrl ? (
+          <Image src={cardImageUrl} alt={altText} fill sizes="(max-width: 640px) 50vw, 340px" className="object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             <ImageOff className="size-8" />

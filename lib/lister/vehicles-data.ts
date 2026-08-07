@@ -19,6 +19,7 @@ export type ListerVehicleRow = {
   rejectedReason: string | null;
   districtName: string | null;
   coverImageUrl: string | null;
+  coverThumbnailUrl: string | null;
   createdAt: string;
 };
 
@@ -26,7 +27,7 @@ const VEHICLE_SELECT = `
   id, name, slug, registration_year, lease_amount, lease_period, status, rejected_reason,
   location_id, created_at,
   brands ( name ),
-  vehicle_images ( url, is_cover, sort_order )
+  vehicle_images ( url, thumbnail_url, is_cover, sort_order )
 `;
 
 type VehicleRow = {
@@ -41,7 +42,7 @@ type VehicleRow = {
   location_id: string | null;
   created_at: string;
   brands: { name: string } | null;
-  vehicle_images: { url: string; is_cover: boolean; sort_order: number }[];
+  vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
 
 /** RLS (vehicles_select_own) scopes this to the signed-in lister's own
@@ -76,6 +77,7 @@ export async function getListerVehicles(listerId: string): Promise<ListerVehicle
       rejectedReason: row.rejected_reason,
       districtName: row.location_id ? (locations.get(row.location_id)?.districtName ?? null) : null,
       coverImageUrl: cover?.url ?? null,
+      coverThumbnailUrl: cover?.thumbnail_url ?? null,
       createdAt: row.created_at,
     };
   });

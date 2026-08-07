@@ -22,6 +22,7 @@ export type AdminListingRow = {
   status: VehicleStatus;
   createdAt: string;
   coverImageUrl: string | null;
+  coverThumbnailUrl: string | null;
   featured: boolean;
   kmDriven: number | null;
   ownershipCount: number | null;
@@ -52,7 +53,7 @@ const LISTING_SELECT = `
   transmission, status, created_at, location_id, lister_id, km_driven, ownership_count, condition,
   brands ( name ),
   admin_profiles!vehicles_lister_id_fkey ( full_name ),
-  vehicle_images ( url, is_cover, sort_order )
+  vehicle_images ( url, thumbnail_url, is_cover, sort_order )
 `;
 
 type ListingRow = {
@@ -74,7 +75,7 @@ type ListingRow = {
   condition: string | null;
   brands: { name: string } | null;
   admin_profiles: { full_name: string | null } | null;
-  vehicle_images: { url: string; is_cover: boolean; sort_order: number }[];
+  vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
 
 async function getFeaturedIds(): Promise<string[]> {
@@ -149,6 +150,7 @@ export async function getListingsPage(
       status: row.status,
       createdAt: row.created_at,
       coverImageUrl: cover?.url ?? null,
+      coverThumbnailUrl: cover?.thumbnail_url ?? null,
       featured: featuredSet.has(row.id),
       kmDriven: row.km_driven,
       ownershipCount: row.ownership_count,
