@@ -1,14 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, ChevronDown, LogOut, XCircle } from "lucide-react";
+import { ChevronDown, LogOut, PlusCircle } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { LISTER_NAV_ITEMS } from "@/lib/lister/nav-items";
 import { ListerMobileNav } from "@/components/lister/lister-mobile-nav";
 import { ListerThemeToggle } from "@/components/lister/lister-theme-toggle";
+import { ListerSearch } from "@/components/lister/lister-search";
+import { ListerClock } from "@/components/lister/lister-clock";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,53 +31,30 @@ function usePageTitle() {
 
 export function ListerHeader({
   profile,
-  rejectedListings,
   dark,
   onToggleDark,
 }: {
   profile: { fullName: string | null; email: string };
-  rejectedListings: { id: string; name: string }[];
   dark: boolean;
   onToggleDark: () => void;
 }) {
   const title = usePageTitle();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-3 backdrop-blur-xl sm:px-4">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur-xl sm:gap-3 sm:px-4">
       <ListerMobileNav />
       <h1 className="min-w-0 flex-1 truncate text-base font-semibold lg:text-lg">{title}</h1>
 
-      <ListerThemeToggle dark={dark} onToggle={onToggleDark} />
+      <ListerSearch />
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button type="button" variant="ghost" size="icon" className="relative size-11" aria-label="Notifications">
-            <Bell className="size-5" />
-            {rejectedListings.length > 0 ? (
-              <Badge
-                variant="destructive"
-                className="absolute -right-1 -top-1 h-4.5 min-w-4.5 justify-center rounded-full px-1 text-[10px]"
-              >
-                {rejectedListings.length > 9 ? "9+" : rejectedListings.length}
-              </Badge>
-            ) : null}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-72">
-          <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {rejectedListings.length > 0 ? (
-            rejectedListings.map((vehicle) => (
-              <DropdownMenuItem key={vehicle.id} variant="destructive" className="items-start">
-                <XCircle className="mt-0.5 size-4 shrink-0" />
-                <span className="truncate">&ldquo;{vehicle.name}&rdquo; was rejected</span>
-              </DropdownMenuItem>
-            ))
-          ) : (
-            <p className="px-2 py-3 text-sm text-muted-foreground">You&apos;re all caught up.</p>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Link href="/lister/vehicles/add" className="no-underline">
+        <Button type="button" variant="outline" size="icon" className="size-11" aria-label="Add vehicle">
+          <PlusCircle className="size-5" />
+        </Button>
+      </Link>
+
+      <ListerClock />
+      <ListerThemeToggle dark={dark} onToggle={onToggleDark} />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

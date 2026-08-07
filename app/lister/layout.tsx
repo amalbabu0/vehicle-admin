@@ -16,13 +16,10 @@ export default async function ListerLayout({ children }: { children: ReactNode }
   }
 
   const supabase = await createClient();
-  const [{ data: rejected }, { data: userData }] = await Promise.all([
-    supabase.from("vehicles").select("id, name").eq("lister_id", profile.id).eq("status", "rejected").order("created_at", { ascending: false }),
-    supabase.auth.getUser(),
-  ]);
+  const { data: userData } = await supabase.auth.getUser();
 
   return (
-    <ListerShell profile={{ fullName: profile.full_name, email: userData.user?.email ?? "" }} rejectedListings={rejected ?? []}>
+    <ListerShell profile={{ fullName: profile.full_name, email: userData.user?.email ?? "" }}>
       {children}
     </ListerShell>
   );
