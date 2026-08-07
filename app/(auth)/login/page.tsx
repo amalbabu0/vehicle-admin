@@ -11,10 +11,8 @@ import { Label } from "@/components/ui/label";
 import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/turnstile-widget";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  oauth_failed: "Sign-in failed. Please try again.",
-  no_admin_access: "That account doesn't have access to the admin portal.",
   missing_code: "Sign-in link was invalid or expired.",
-  profile_missing: "Something went wrong setting up your account. Please try again.",
+  link_failed: "Sign-in link was invalid or expired.",
 };
 
 // useSearchParams() opts a component out of static prerendering unless
