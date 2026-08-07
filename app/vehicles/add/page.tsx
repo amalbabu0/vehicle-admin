@@ -23,7 +23,6 @@ const emptyFormState = {
   contactPhone: "",
   serviceChargePercent: "",
   locationId: "",
-  description: "",
   fuelType: "",
   transmission: "",
   registrationYear: "",
@@ -96,7 +95,6 @@ export default function AddVehiclePage() {
       contactPhone: parsedQuick.contactPhone ?? prev.contactPhone,
       serviceChargePercent: parsedQuick.serviceChargePercent ?? prev.serviceChargePercent,
       locationId: matchLocationId(parsedQuick.locationId, locationOptions) ?? prev.locationId,
-      description: parsedQuick.description ?? prev.description,
       listingType: parsedQuick.listingType ?? prev.listingType,
       fuelType: parsedQuick.fuelType ?? prev.fuelType,
       transmission: parsedQuick.transmission ?? prev.transmission,
@@ -365,18 +363,6 @@ export default function AddVehiclePage() {
                       <option value="false">No</option>
                     </select>
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formState.description}
-                    onChange={(event) => handleChange("description", event.target.value)}
-                    required
-                    rows={5}
-                  />
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">

@@ -479,7 +479,7 @@ export type Database = {
           condition: string | null
           contact_phone: string
           created_at: string
-          description: string
+          description: string | null
           direct_owner: boolean
           engine_capacity: string | null
           features: string[]
@@ -514,7 +514,7 @@ export type Database = {
           condition?: string | null
           contact_phone: string
           created_at?: string
-          description: string
+          description?: string | null
           direct_owner?: boolean
           engine_capacity?: string | null
           features?: string[]
@@ -549,7 +549,7 @@ export type Database = {
           condition?: string | null
           contact_phone?: string
           created_at?: string
-          description?: string
+          description?: string | null
           direct_owner?: boolean
           engine_capacity?: string | null
           features?: string[]

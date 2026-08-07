@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     contact_phone: data.contactPhone,
     service_charge_percent: data.serviceChargePercent ?? null,
     location_id: locationId,
-    description: data.description,
+    description: data.description || null,
     fuel_type: data.fuelType || null,
     transmission: data.transmission || null,
     engine_capacity: data.engineCapacity || null,

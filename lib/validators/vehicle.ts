@@ -1,4 +1,5 @@
 import * as z from "zod";
+import indiaCarBrands from "@/lib/data/india-car-brands.json";
 
 export const vehicleCreateSchema = z.object({
   listingType: z.enum(["lease", "sale"]),
@@ -11,7 +12,7 @@ export const vehicleCreateSchema = z.object({
   contactPhone: z.string().min(6, "Contact number is required."),
   serviceChargePercent: z.preprocess((value) => value === undefined || value === null || value === "" ? null : Number(value), z.number().min(0).max(100).nullable()),
   locationId: z.string().min(1, "Location is required."),
-  description: z.string().min(10, "Description is required."),
+  description: z.string().optional().nullable(),
   fuelType: z.string().optional().nullable(),
   transmission: z.string().optional().nullable(),
   registrationYear: z.preprocess((value) => value === undefined || value === null || value === "" ? null : Number(value), z.number().int().min(1900).max(new Date().getFullYear()).nullable()),
@@ -33,10 +34,41 @@ export type QuickListing = {
   engineCapacity?: string; seats?: string; color?: string; condition?: string;
 };
 
-const vehicleBrands = ["Maruti Suzuki", "Mercedes-Benz", "Land Rover", "Volkswagen", "Mitsubishi", "Chevrolet", "Mahindra", "Hyundai", "Toyota", "Honda", "Tata", "Kia", "Nissan", "Renault", "Skoda", "BMW", "Audi", "Ford", "Jeep", "Volvo", "Lexus", "Porsche", "Jaguar", "MG", "BYD", "Fiat", "Isuzu"];
+const vehicleBrands = indiaCarBrands.brands.map((brand) => brand.name);
+
+// Real-world ads very often name only the model ("2021 WAGONR VXI") and
+// never the manufacturer — sorted longest-first so e.g. "Grand i10 Nios"
+// matches before the plainer "i10" would.
+const modelToBrand = new Map(
+  indiaCarBrands.brands
+    .flatMap((brand) => brand.models.map((model) => [model, brand.name] as const))
+    .sort((a, b) => b[0].length - a[0].length)
+);
+
+function bareWordPattern(value: string): string {
+  // Matches "WagonR" against "WAGONR" or "Wagon R" — real ads are
+  // inconsistent about spacing/casing that the source name doesn't have.
+  return value.split(/\s+/).map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s*");
+}
+
+function findModelMatch(text: string): { brand: string; model: string } | undefined {
+  for (const [model, brand] of modelToBrand) {
+    if (new RegExp(`\\b${bareWordPattern(model)}\\b`, "i").test(text)) {
+      return { brand, model };
+    }
+  }
+  return undefined;
+}
 
 function labelledValue(text: string, labels: string[]): string | undefined {
-  const labelsPattern = labels.map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  // Regex alternation tries left-to-right and stops at the first match —
+  // without sorting longest-first, a bare label like "lease" matches the
+  // start of "Lease Period:" before the more specific "lease amount" ever
+  // gets a chance, silently capturing the wrong line's value.
+  const labelsPattern = [...labels]
+    .sort((a, b) => b.length - a.length)
+    .map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("|");
   const match = text.match(new RegExp(`(?:^|\\n)\\s*(?:${labelsPattern})\\s*[:\\-–]?\\s*([^\\n]+)`, "im"));
   return match?.[1]?.trim().replace(/^[|•·]+|[|•·]+$/g, "") || undefined;
 }
@@ -66,12 +98,23 @@ export function parseQuickListing(text: string): QuickListing {
   const year = (labelledValue(source, ["year", "model year", "registration year"])?.match(/\b(19\d{2}|20\d{2})\b/) ?? source.match(/\b(19\d{2}|20\d{2})\b/))?.[1];
   const vehicleLine = labelledValue(source, ["vehicle", "car", "bike", "vehicle name"])
     ?? lines.find((line) => vehicleBrands.some((brand) => new RegExp(`\\b${brand.replace(" ", "\\s+")}\\b`, "i").test(line)))
+    ?? lines.find((line) => findModelMatch(line))
     ?? lines.find((line) => /\b(19\d{2}|20\d{2})\b/.test(line) && !/(price|rent|lease|amount|km|phone|contact)/i.test(line))
     ?? lines.find((line) => !/(price|rent|lease|amount|km|phone|contact|location|owner)/i.test(line));
-  const brand = vehicleBrands.find((candidate) => new RegExp(`\\b${candidate.replace(" ", "\\s+")}\\b`, "i").test(vehicleLine ?? source));
+  const directBrandMatch = vehicleBrands.find((candidate) => new RegExp(`\\b${candidate.replace(" ", "\\s+")}\\b`, "i").test(vehicleLine ?? source));
+  // Ads frequently name only the model ("2021 WAGONR VXI") and never the
+  // manufacturer — infer both from the known model list when a direct
+  // brand name isn't present.
+  const modelMatch = findModelMatch(vehicleLine ?? source);
+  const brand = directBrandMatch ?? modelMatch?.brand;
   const name = vehicleLine?.replace(/^[^A-Za-z0-9]*(?:for\s+)?(?:sale|lease)[:\-]?\s*/i, "").trim();
-  const model = brand && name ? name.replace(new RegExp(`\\b${brand.replace(" ", "\\s+")}\\b`, "i"), "").replace(/\b(19\d{2}|20\d{2})\b/g, "").replace(/\s+/g, " ").trim() : undefined;
-  const priceText = labelledValue(source, ["price", "rent", "lease", "lease amount", "monthly rent", "amount", "asking price"]) ?? source.match(/(?:₹|rs\.?|inr)\s*\d[\d,.\s]*(?:lakh|lac|crore|cr|k)?/i)?.[0];
+  const model = modelMatch?.model
+    ?? (brand && name ? name.replace(new RegExp(`\\b${brand.replace(" ", "\\s+")}\\b`, "i"), "").replace(/\b(19\d{2}|20\d{2})\b/g, "").replace(/\s+/g, " ").trim() : undefined);
+  // Bare "lease" deliberately excluded — it would match the start of
+  // "Lease Period:" before ever reaching "Lease Amount:" later in the
+  // text, since labelledValue finds the first matching line, not the
+  // most specific one. "lease amount" alone is unambiguous.
+  const priceText = labelledValue(source, ["price", "rent", "lease amount", "monthly rent", "amount", "asking price"]) ?? source.match(/(?:₹|rs\.?|inr)\s*\d[\d,.\s]*(?:lakh|lac|crore|cr|k)?/i)?.[0];
   const periodText = labelledValue(source, ["period", "lease period", "tenure"]) ?? source.match(/\b(?:per\s*(?:month|week|day)|\d+\s*(?:months?|years?|days?))\b/i)?.[0];
   const phoneText = labelledValue(source, ["phone", "mobile", "contact", "call", "whatsapp"]) ?? source.match(/(?:\+?\d[\d\s()-]{7,}\d)/)?.[0];
   const ownerText = labelledValue(source, ["owner", "ownership", "seller"]);
