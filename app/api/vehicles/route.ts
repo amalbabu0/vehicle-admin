@@ -61,5 +61,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: imageError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: "Vehicle listing created as draft." }, { status: 201 });
+  return NextResponse.json({ message: "Vehicle listing created as draft.", id: vehicle.id }, { status: 201 });
 }

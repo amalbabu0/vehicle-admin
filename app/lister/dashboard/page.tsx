@@ -29,7 +29,7 @@ export default async function ListerDashboardPage() {
         <ListerStatCard label="Rejected" value={stats.rejected} icon={XCircle} tone="destructive" />
       </div>
 
-      <Link href="/vehicles/add" className="block no-underline">
+      <Link href="/lister/vehicles/add" className="block no-underline">
         <Button className="min-h-13 w-full gap-2 text-base">
           <PlusCircle className="size-5" /> Add Vehicle
         </Button>
@@ -47,7 +47,7 @@ export default async function ListerDashboardPage() {
           <div className="mt-6 flex flex-col items-center gap-2 py-6 text-center">
             <PackageOpen className="size-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">You haven&apos;t added a vehicle yet.</p>
-            <Link href="/vehicles/add" className="mt-1 text-sm font-medium text-primary no-underline">
+            <Link href="/lister/vehicles/add" className="mt-1 text-sm font-medium text-primary no-underline">
               Add your first vehicle
             </Link>
           </div>

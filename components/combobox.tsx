@@ -32,6 +32,7 @@ export function Combobox({
   emptyText = "No results found.",
   allowCustomValue = false,
   disabled = false,
+  triggerClassName,
 }: {
   options: ComboboxOption[];
   value: string;
@@ -41,6 +42,10 @@ export function Combobox({
   emptyText?: string;
   allowCustomValue?: boolean;
   disabled?: boolean;
+  /** Optional override for the trigger button's height/etc — the default
+   * h-10 predates the 48px touch-target bar the lister mobile rebuild
+   * uses; kept opt-in so existing callers are unaffected. */
+  triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -56,7 +61,7 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className="h-10 w-full justify-between font-normal"
+          className={cn("h-10 w-full justify-between font-normal", triggerClassName)}
         >
           <span className={cn("truncate", !selectedLabel && "text-muted-foreground")}>
             {selectedLabel || placeholder}

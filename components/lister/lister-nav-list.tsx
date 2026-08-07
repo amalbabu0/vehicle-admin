@@ -12,7 +12,11 @@ export function ListerNavList({ collapsed = false, onNavigate }: { collapsed?: b
   return (
     <nav aria-label="Lister navigation" className="flex flex-col gap-1">
       {LISTER_NAV_ITEMS.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        // Exact match only — "My Vehicles" (/lister/vehicles) would
+        // otherwise prefix-match "Add Vehicle" (/lister/vehicles/add) too.
+        // None of today's lister routes are nested under one another, so
+        // there's no case that actually needs startsWith.
+        const active = pathname === item.href;
         const link = (
           <Link
             key={item.href}

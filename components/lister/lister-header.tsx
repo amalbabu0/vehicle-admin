@@ -19,8 +19,9 @@ import {
 
 function usePageTitle() {
   const pathname = usePathname();
-  if (pathname === "/vehicles/add") return "Add Vehicle";
-  const item = LISTER_NAV_ITEMS.find((entry) => pathname === entry.href || pathname.startsWith(`${entry.href}/`));
+  // Exact match only — same "/lister/vehicles" vs "/lister/vehicles/add"
+  // prefix-collision reasoning as lister-nav-list.tsx.
+  const item = LISTER_NAV_ITEMS.find((entry) => pathname === entry.href);
   return item?.label ?? "Kerala Lease Hub";
 }
 
