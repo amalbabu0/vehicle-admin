@@ -8,7 +8,7 @@ export default function ListerVehiclesLoading() {
         <Skeleton className="h-9 w-20 rounded-lg" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, index) => (
           <div key={index} className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm shadow-black/5">
             <Skeleton className="aspect-video w-full rounded-none" />
