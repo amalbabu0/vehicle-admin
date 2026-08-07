@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -660,6 +660,15 @@ export type Database = {
           vehicle_count: number
         }[]
       }
+      get_login_attack_alerts: {
+        Args: { p_minutes?: number; p_threshold?: number }
+        Returns: {
+          attempt_count: number
+          emails: string[]
+          ip: string
+          last_attempt_at: string
+        }[]
+      }
       get_popular_searches: {
         Args: { p_limit?: number }
         Returns: {
@@ -695,6 +704,10 @@ export type Database = {
           p_entity_type: string
           p_metadata?: Json
         }
+        Returns: undefined
+      }
+      log_failed_login: {
+        Args: { p_email: string; p_ip: string; p_reason: string }
         Returns: undefined
       }
       show_limit: { Args: never; Returns: number }

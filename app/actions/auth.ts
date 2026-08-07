@@ -61,6 +61,15 @@ async function logAuditEvent(action: string, entityId?: string, metadata: Record
   });
 }
 
+/** Uses the dedicated log_failed_login() RPC, not logAuditEvent() above —
+ * this needs to work before there's a session (rate-limited, wrong
+ * password, etc.), and that RPC is deliberately narrower than the general
+ * one (see migration 0017) since it's reachable by anon callers. */
+async function logFailedLogin(email: string, ip: string, reason: string) {
+  const supabase = await createClient();
+  await supabase.rpc("log_failed_login", { p_email: email, p_ip: ip, p_reason: reason });
+}
+
 // ============================================================================
 // login
 // ============================================================================
@@ -77,22 +86,26 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
   }
 
   const ip = await clientIp();
+  const { email } = validated.data;
   const { success: withinLimit } = await checkRateLimit(authRateLimit, `login:${ip}`);
   if (!withinLimit) {
+    await logFailedLogin(email, ip, "rate_limited");
     return { message: "Too many attempts. Try again in a few minutes." };
   }
 
   const humanVerified = await verifyTurnstileToken(validated.data.turnstileToken, "login", ip);
   if (!humanVerified) {
+    await logFailedLogin(email, ip, "turnstile_failed");
     return { message: "Verification failed. Please try again." };
   }
 
-  const { email, password } = validated.data;
+  const { password } = validated.data;
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
+    await logFailedLogin(email, ip, "invalid_credentials");
     return { message: "Incorrect email or password." };
   }
 
@@ -105,6 +118,7 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
 
   if (profileError || !profile || (profile.role !== "admin" && profile.role !== "lister")) {
     await supabase.auth.signOut();
+    await logFailedLogin(email, ip, "unauthorized_role");
     return { message: "This account doesn't have access to the admin portal." };
   }
 
@@ -118,6 +132,7 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
     const allowedEmail = typeof setting?.value === "string" ? setting.value : null;
     if (!allowedEmail || data.user.email?.toLowerCase() !== allowedEmail.toLowerCase()) {
       await supabase.auth.signOut();
+      await logFailedLogin(email, ip, "unauthorized_email");
       return { message: "This account doesn't have access to the admin portal." };
     }
   }

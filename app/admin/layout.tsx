@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { requireAdmin } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
+import { getLoginAttackAlerts } from "@/lib/admin/security-data";
 import { AdminShell } from "@/components/admin/admin-shell";
 
 // Real enforcement: requireAdmin() redirects both signed-out visitors and
@@ -13,15 +14,17 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const profile = await requireAdmin();
 
   const supabase = await createClient();
-  const [{ count }, { data: userData }] = await Promise.all([
+  const [{ count }, { data: userData }, securityAlerts] = await Promise.all([
     supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("status", "pending_approval"),
     supabase.auth.getUser(),
+    getLoginAttackAlerts(),
   ]);
 
   return (
     <AdminShell
       profile={{ fullName: profile.full_name, role: profile.role, email: userData.user?.email ?? "" }}
       pendingApprovalCount={count ?? 0}
+      securityAlerts={securityAlerts}
     >
       {children}
     </AdminShell>

@@ -9,6 +9,7 @@
  * round trip. */
 export const KNOWN_ACTIONS = [
   "login",
+  "login_failed",
   "logout",
   "password_reset",
   "listing_approved",
