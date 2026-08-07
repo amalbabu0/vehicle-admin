@@ -18,6 +18,8 @@ export type ShareableVehicle = {
   slug: string;
 };
 
+const WHATSAPP_CHANNEL_URL = "https://whatsapp.com/channel/0029Vb7g7FCICVfuoWjwAR3A";
+
 const OWNERSHIP_ORDINALS = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"];
 
 export function formatOwnership(count: number | null): string | null {
@@ -43,7 +45,16 @@ export function buildVehicleShareMessage(vehicle: ShareableVehicle, publicUrl: s
   if (vehicle.districtName) lines.push(`📍 Location: ${vehicle.districtName}`);
   if (vehicle.condition) lines.push(`✨ Condition: ${vehicle.condition}`);
 
-  lines.push("", "🔗 View Vehicle", publicUrl, "", "_Powered by Kerala Lease Hub_");
+  lines.push(
+    "",
+    "🔗 View Vehicle",
+    publicUrl,
+    "",
+    "📢 Join our WhatsApp Channel for more listings",
+    WHATSAPP_CHANNEL_URL,
+    "",
+    "_Powered by Kerala Lease Hub_"
+  );
 
   return lines.join("\n");
 }
