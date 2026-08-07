@@ -121,7 +121,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ message: deleteImagesError.message }, { status: 500 });
   }
   const { error: imageError } = await supabase.from("vehicle_images").insert(
-    data.imageUrls.map((url, sort_order) => ({ vehicle_id: id, url, sort_order, is_cover: sort_order === 0 }))
+    data.imageUrls.map((image, sort_order) => ({
+      vehicle_id: id,
+      url: image.url,
+      medium_url: image.mediumUrl ?? null,
+      thumbnail_url: image.thumbnailUrl ?? null,
+      sort_order,
+      is_cover: sort_order === 0,
+    }))
   );
   if (imageError) {
     return NextResponse.json({ message: imageError.message }, { status: 500 });

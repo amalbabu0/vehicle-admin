@@ -4,7 +4,9 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Camera, ChevronLeft, ChevronRight, Loader2, Star, X } from "lucide-react";
-import type { WizardFormState } from "@/components/lister/add-vehicle/types";
+import type { WizardFormState, WizardImage } from "@/components/lister/add-vehicle/types";
+
+const MAX_IMAGES = 20;
 
 export function ImagesStep({
   formState,
@@ -18,11 +20,23 @@ export function ImagesStep({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const uploadFiles = async (files: FileList | File[]) => {
-    const list = Array.from(files).filter((file) => file.type.startsWith("image/"));
+    let list = Array.from(files).filter((file) => file.type.startsWith("image/") || file.type === "");
+    const remaining = MAX_IMAGES - formState.imageUrls.length;
+    if (remaining <= 0) {
+      toast.error(`You can upload up to ${MAX_IMAGES} images per listing.`);
+      return;
+    }
+    if (list.length > remaining) {
+      toast.error(`Only ${remaining} more image${remaining === 1 ? "" : "s"} can be added (${MAX_IMAGES} max).`);
+      list = list.slice(0, remaining);
+    }
     if (list.length === 0) return;
+
     setUploadingCount((count) => count + list.length);
 
-    const uploaded: string[] = [];
+    // One request per file with its own try/catch — a failure on one image
+    // doesn't lose the others in the same batch.
+    const uploaded: WizardImage[] = [];
     for (const file of list) {
       try {
         const body = new FormData();
@@ -30,7 +44,7 @@ export function ImagesStep({
         const response = await fetch("/api/uploads/vehicle-image", { method: "POST", body });
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.message || "Unable to upload image.");
-        uploaded.push(payload.url);
+        uploaded.push({ url: payload.url, mediumUrl: payload.mediumUrl, thumbnailUrl: payload.thumbnailUrl });
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Unable to upload image.");
       } finally {
@@ -77,11 +91,13 @@ export function ImagesStep({
       >
         <Camera className="size-8 text-muted-foreground" />
         <p className="text-sm font-medium">Tap to add photos</p>
-        <p className="text-xs text-muted-foreground">Camera or gallery · multiple images · drag &amp; drop on desktop</p>
+        <p className="text-xs text-muted-foreground">
+          Camera or gallery · multiple images · drag &amp; drop on desktop · up to {MAX_IMAGES}
+        </p>
         <input
           ref={inputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/avif"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
           multiple
           className="hidden"
           onChange={(event) => {
@@ -99,9 +115,9 @@ export function ImagesStep({
 
       {formState.imageUrls.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {formState.imageUrls.map((url, index) => (
-            <div key={url} className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-muted">
-              <Image src={url} alt={`Vehicle photo ${index + 1}`} fill sizes="200px" className="object-cover" />
+          {formState.imageUrls.map((image, index) => (
+            <div key={image.url} className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-muted">
+              <Image src={image.thumbnailUrl ?? image.url} alt={`Vehicle photo ${index + 1}`} fill sizes="200px" className="object-cover" />
               {index === 0 ? (
                 <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium">
                   <Star className="size-2.5 fill-current" /> Cover

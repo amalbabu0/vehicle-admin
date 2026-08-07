@@ -74,9 +74,9 @@ export function ReviewStep({
           <p>No photos added.</p>
         ) : (
           <div className="flex gap-2 pt-1">
-            {formState.imageUrls.slice(0, 4).map((url) => (
-              <div key={url} className="relative size-14 overflow-hidden rounded-lg border border-border">
-                <Image src={url} alt="" fill sizes="56px" className="object-cover" />
+            {formState.imageUrls.slice(0, 4).map((image) => (
+              <div key={image.url} className="relative size-14 overflow-hidden rounded-lg border border-border">
+                <Image src={image.thumbnailUrl ?? image.url} alt="" fill sizes="56px" className="object-cover" />
               </div>
             ))}
             {formState.imageUrls.length > 4 ? (

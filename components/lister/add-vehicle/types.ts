@@ -1,3 +1,13 @@
+/** One uploaded image's 3 WebP variants — see app/api/uploads/vehicle-image.
+ * medium/thumbnail are only optional here because pre-existing edited
+ * listings (uploaded before the multi-size pipeline) might carry entries
+ * that never had them generated. */
+export type WizardImage = {
+  url: string;
+  mediumUrl?: string;
+  thumbnailUrl?: string;
+};
+
 export type WizardFormState = {
   brand: string;
   model: string;
@@ -14,7 +24,7 @@ export type WizardFormState = {
   leasePeriod: string;
   serviceChargePercent: string;
   locationId: string;
-  imageUrls: string[];
+  imageUrls: WizardImage[];
 };
 
 export const EMPTY_WIZARD_STATE: WizardFormState = {

@@ -66,24 +66,27 @@ export default function AddVehiclePage() {
     setAlert(null);
     setIsUploading(true);
     try {
-      const uploadedUrls: string[] = [];
+      // Carries the {url, mediumUrl, thumbnailUrl} triple the upload
+      // endpoint returns — not just `url` — so listings created from this
+      // form also get thumbnails, same as the mobile wizard.
+      const uploaded: { url: string; mediumUrl?: string; thumbnailUrl?: string }[] = [];
       for (const file of Array.from(files)) {
         const body = new FormData();
         body.append("file", file);
         const response = await fetch("/api/uploads/vehicle-image", { method: "POST", body });
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.message || "Unable to upload image.");
-        uploadedUrls.push(payload.url);
+        uploaded.push({ url: payload.url, mediumUrl: payload.mediumUrl, thumbnailUrl: payload.thumbnailUrl });
       }
 
-      let existingUrls: string[] = [];
+      let existing: { url: string; mediumUrl?: string; thumbnailUrl?: string }[] = [];
       try {
         const parsed = JSON.parse(formState.imageUrls);
-        existingUrls = Array.isArray(parsed) ? parsed.filter((url): url is string => typeof url === "string") : [];
+        existing = Array.isArray(parsed) ? parsed.filter((entry): entry is { url: string } => Boolean(entry?.url)) : [];
       } catch {
-        // Replace malformed manual input with the successfully uploaded URLs.
+        // Replace malformed manual input with the successfully uploaded images.
       }
-      handleChange("imageUrls", JSON.stringify([...existingUrls, ...uploadedUrls]));
+      handleChange("imageUrls", JSON.stringify([...existing, ...uploaded]));
     } catch (error) {
       setAlert({ type: "error", message: error instanceof Error ? error.message : "Unable to upload image." });
     } finally {
@@ -314,7 +317,7 @@ export default function AddVehiclePage() {
               <Input
                 id="vehicleImages"
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/avif"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
                 multiple
                 onChange={(event) => void handleImageUpload(event.target.files)}
                 disabled={isUploading}

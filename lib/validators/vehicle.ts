@@ -6,6 +6,25 @@ export const TRANSMISSIONS = [
   "Manual", "Automatic (AT)", "AMT", "CVT", "DCT", "iMT", "Tiptronic", "Sequential", "Semi-Automatic",
 ] as const;
 
+// Accepts either shape: a plain URL string (legacy — kept so any caller
+// that isn't updated to the multi-size pipeline still works, per "existing
+// uploads should continue to work") or the {url, mediumUrl, thumbnailUrl}
+// triple the current upload endpoint returns. Both normalize to the object
+// shape, so every consumer downstream (the vehicles insert/update routes)
+// can assume one consistent shape regardless of caller.
+const imageEntrySchema = z
+  .union([
+    z.string().url("Enter a valid image URL."),
+    z.object({
+      url: z.string().url("Enter a valid image URL."),
+      mediumUrl: z.string().url().optional(),
+      thumbnailUrl: z.string().url().optional(),
+    }),
+  ])
+  .transform((entry) => (typeof entry === "string" ? { url: entry, mediumUrl: undefined, thumbnailUrl: undefined } : entry));
+
+export type VehicleImageEntry = z.infer<typeof imageEntrySchema>;
+
 export const vehicleCreateSchema = z.object({
   brand: z.string().min(1, "Brand is required."),
   model: z.string().min(1, "Model is required."),
@@ -25,7 +44,7 @@ export const vehicleCreateSchema = z.object({
   features: z.string().optional().nullable(),
   imageUrls: z.string().min(1, "At least one vehicle image is required.").transform((value) => {
     try { return JSON.parse(value); } catch { return []; }
-  }).pipe(z.array(z.string().url("Enter valid image URLs.")).min(1, "At least one valid image URL is required.")),
+  }).pipe(z.array(imageEntrySchema).min(1, "At least one valid image URL is required.").max(20, "You can upload up to 20 images per listing.")),
 });
 
 export type VehicleCreateInput = z.infer<typeof vehicleCreateSchema>;

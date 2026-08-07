@@ -98,7 +98,7 @@ export type ListerVehicleEditData = {
   engineCapacity: string;
   condition: string;
   features: string;
-  imageUrls: string[];
+  imageUrls: { url: string; mediumUrl?: string; thumbnailUrl?: string }[];
 };
 
 const VEHICLE_EDIT_SELECT = `
@@ -106,7 +106,7 @@ const VEHICLE_EDIT_SELECT = `
   service_charge_percent, location_id, description, fuel_type, transmission,
   engine_capacity, condition, features,
   brands ( name ),
-  vehicle_images ( url, is_cover, sort_order )
+  vehicle_images ( url, medium_url, thumbnail_url, is_cover, sort_order )
 `;
 
 type VehicleEditRow = {
@@ -126,7 +126,7 @@ type VehicleEditRow = {
   condition: string | null;
   features: string[];
   brands: { name: string } | null;
-  vehicle_images: { url: string; is_cover: boolean; sort_order: number }[];
+  vehicle_images: { url: string; medium_url: string | null; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
 
 /** RLS (vehicles_select_own) scopes this to the caller's own vehicle — a
@@ -157,6 +157,10 @@ export async function getListerVehicleForEdit(id: string, listerId: string): Pro
     engineCapacity: row.engine_capacity ?? "",
     condition: row.condition ?? "",
     features: row.features.join(", "),
-    imageUrls: images.map((image) => image.url),
+    imageUrls: images.map((image) => ({
+      url: image.url,
+      mediumUrl: image.medium_url ?? undefined,
+      thumbnailUrl: image.thumbnail_url ?? undefined,
+    })),
   };
 }
