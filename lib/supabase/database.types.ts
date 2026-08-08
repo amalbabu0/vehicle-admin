@@ -491,6 +491,9 @@ export type Database = {
           condition: string | null
           contact_phone: string
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          deleted_by_role: Database["public"]["Enums"]["admin_role"] | null
           description: string | null
           direct_owner: boolean
           engine_capacity: string | null
@@ -498,6 +501,7 @@ export type Database = {
           fuel_type: string | null
           id: string
           insurance_valid_until: string | null
+          is_deleted: boolean
           km_driven: number | null
           lease_amount: number
           lease_period: string
@@ -506,6 +510,7 @@ export type Database = {
           model: string | null
           name: string
           ownership_count: number | null
+          permanent_delete_at: string | null
           published_at: string | null
           registration_year: number | null
           rejected_reason: string | null
@@ -526,6 +531,9 @@ export type Database = {
           condition?: string | null
           contact_phone: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_by_role?: Database["public"]["Enums"]["admin_role"] | null
           description?: string | null
           direct_owner?: boolean
           engine_capacity?: string | null
@@ -533,6 +541,7 @@ export type Database = {
           fuel_type?: string | null
           id?: string
           insurance_valid_until?: string | null
+          is_deleted?: boolean
           km_driven?: number | null
           lease_amount: number
           lease_period: string
@@ -541,6 +550,7 @@ export type Database = {
           model?: string | null
           name: string
           ownership_count?: number | null
+          permanent_delete_at?: string | null
           published_at?: string | null
           registration_year?: number | null
           rejected_reason?: string | null
@@ -561,6 +571,9 @@ export type Database = {
           condition?: string | null
           contact_phone?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_by_role?: Database["public"]["Enums"]["admin_role"] | null
           description?: string | null
           direct_owner?: boolean
           engine_capacity?: string | null
@@ -568,6 +581,7 @@ export type Database = {
           fuel_type?: string | null
           id?: string
           insurance_valid_until?: string | null
+          is_deleted?: boolean
           km_driven?: number | null
           lease_amount?: number
           lease_period?: string
@@ -576,6 +590,7 @@ export type Database = {
           model?: string | null
           name?: string
           ownership_count?: number | null
+          permanent_delete_at?: string | null
           published_at?: string | null
           registration_year?: number | null
           rejected_reason?: string | null
@@ -607,6 +622,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "admin_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -722,8 +744,13 @@ export type Database = {
         Args: { p_email: string; p_ip: string; p_reason: string }
         Returns: undefined
       }
+      restore_vehicle: { Args: { p_vehicle_id: string }; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      soft_delete_vehicle: {
+        Args: { p_vehicle_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       admin_role: "admin" | "lister"

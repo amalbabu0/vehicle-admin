@@ -51,7 +51,7 @@ type VehicleRow = {
 export async function getListerVehicles(listerId: string): Promise<ListerVehicleRow[]> {
   const supabase = await createClient();
   const [{ data }, locations, { data: featuredSetting }] = await Promise.all([
-    supabase.from("vehicles").select(VEHICLE_SELECT).eq("lister_id", listerId).order("created_at", { ascending: false }),
+    supabase.from("vehicles").select(VEHICLE_SELECT).eq("lister_id", listerId).eq("is_deleted", false).order("created_at", { ascending: false }),
     getLocationLookup(),
     // site_settings is publicly readable (RLS: using (true)), so this is a
     // plain select through the normal client, same admin-owned mechanism
@@ -79,6 +79,77 @@ export async function getListerVehicles(listerId: string): Promise<ListerVehicle
       coverImageUrl: cover?.url ?? null,
       coverThumbnailUrl: cover?.thumbnail_url ?? null,
       createdAt: row.created_at,
+    };
+  });
+}
+
+export type ListerDeletedVehicle = {
+  id: string;
+  name: string;
+  slug: string;
+  status: VehicleStatus;
+  leaseAmount: number;
+  leasePeriod: string;
+  deletedByName: string | null;
+  deletedByRole: Database["public"]["Enums"]["admin_role"] | null;
+  deletedAt: string;
+  permanentDeleteAt: string;
+  coverImageUrl: string | null;
+  coverThumbnailUrl: string | null;
+};
+
+const DELETED_VEHICLE_SELECT = `
+  id, name, slug, status, lease_amount, lease_period,
+  deleted_at, deleted_by_role, permanent_delete_at,
+  deleted_by_profile:admin_profiles!vehicles_deleted_by_fkey ( full_name ),
+  vehicle_images ( url, thumbnail_url, is_cover, sort_order )
+`;
+
+type DeletedVehicleRow = {
+  id: string;
+  name: string;
+  slug: string;
+  status: VehicleStatus;
+  lease_amount: number;
+  lease_period: string;
+  deleted_at: string;
+  deleted_by_role: Database["public"]["Enums"]["admin_role"] | null;
+  permanent_delete_at: string;
+  deleted_by_profile: { full_name: string | null } | null;
+  vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
+};
+
+/** RLS (vehicles_select_own) scopes this to the caller's own vehicles —
+ * a lister can never see another lister's deleted listings through this,
+ * regardless of what id is passed anywhere else in the app (see
+ * migration 0022 — the select policy isn't restricted by is_deleted, the
+ * ownership check is what actually keeps this scoped). */
+export async function getListerDeletedVehicles(listerId: string): Promise<ListerDeletedVehicle[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("vehicles")
+    .select(DELETED_VEHICLE_SELECT)
+    .eq("lister_id", listerId)
+    .eq("is_deleted", true)
+    .order("deleted_at", { ascending: false });
+
+  const rows = (data ?? []) as unknown as DeletedVehicleRow[];
+
+  return rows.map((row) => {
+    const cover = row.vehicle_images.find((image) => image.is_cover) ?? [...row.vehicle_images].sort((a, b) => a.sort_order - b.sort_order)[0];
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      status: row.status,
+      leaseAmount: row.lease_amount,
+      leasePeriod: row.lease_period,
+      deletedByName: row.deleted_by_profile?.full_name ?? null,
+      deletedByRole: row.deleted_by_role,
+      deletedAt: row.deleted_at,
+      permanentDeleteAt: row.permanent_delete_at,
+      coverImageUrl: cover?.url ?? null,
+      coverThumbnailUrl: cover?.thumbnail_url ?? null,
     };
   });
 }
@@ -133,10 +204,17 @@ type VehicleEditRow = {
 
 /** RLS (vehicles_select_own) scopes this to the caller's own vehicle — a
  * mismatched listerId/id combination simply returns no row, not another
- * lister's data. */
+ * lister's data. Excludes soft-deleted rows deliberately: a listing has to
+ * be restored before it can be edited again. */
 export async function getListerVehicleForEdit(id: string, listerId: string): Promise<ListerVehicleEditData | null> {
   const supabase = await createClient();
-  const { data } = await supabase.from("vehicles").select(VEHICLE_EDIT_SELECT).eq("id", id).eq("lister_id", listerId).maybeSingle();
+  const { data } = await supabase
+    .from("vehicles")
+    .select(VEHICLE_EDIT_SELECT)
+    .eq("id", id)
+    .eq("lister_id", listerId)
+    .eq("is_deleted", false)
+    .maybeSingle();
   if (!data) return null;
 
   const row = data as unknown as VehicleEditRow;

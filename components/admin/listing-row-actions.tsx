@@ -124,8 +124,8 @@ export function ListingRowActions({
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete &ldquo;{listing.name}&rdquo;?</AlertDialogTitle>
-            <AlertDialogDescription>This permanently removes the listing and its images. This cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>Move &ldquo;{listing.name}&rdquo; to Deleted Listings?</AlertDialogTitle>
+            <AlertDialogDescription>The listing will be kept for 10 days before permanent deletion, and can be restored anytime before then.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

@@ -16,10 +16,10 @@ export type ListerStats = {
 export async function getListerStats(listerId: string): Promise<ListerStats> {
   const supabase = await createClient();
   const [{ count: total }, { count: pending }, { count: approved }, { count: rejected }] = await Promise.all([
-    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("lister_id", listerId),
-    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("lister_id", listerId).eq("status", "pending_approval"),
-    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("lister_id", listerId).eq("status", "published"),
-    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("lister_id", listerId).eq("status", "rejected"),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("lister_id", listerId).eq("is_deleted", false),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("lister_id", listerId).eq("status", "pending_approval").eq("is_deleted", false),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("lister_id", listerId).eq("status", "published").eq("is_deleted", false),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("lister_id", listerId).eq("status", "rejected").eq("is_deleted", false),
   ]);
 
   return { total: total ?? 0, pending: pending ?? 0, approved: approved ?? 0, rejected: rejected ?? 0 };
@@ -39,6 +39,7 @@ export async function getListerRecentVehicles(listerId: string, limit = 5): Prom
     .from("vehicles")
     .select("id, name, status, created_at, lease_amount")
     .eq("lister_id", listerId)
+    .eq("is_deleted", false)
     .order("created_at", { ascending: false })
     .limit(limit);
 

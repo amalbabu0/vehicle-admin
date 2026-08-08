@@ -38,10 +38,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { status } = validation.data;
   const supabase = await createClient();
+  // Excludes soft-deleted rows: a listing has to be restored before its
+  // status can change again — .single() turning up nothing correctly
+  // surfaces as an error rather than silently updating a deleted row.
   const { data: vehicle, error } = await supabase
     .from("vehicles")
     .update(status === "published" ? { status, published_at: new Date().toISOString() } : { status })
     .eq("id", id)
+    .eq("is_deleted", false)
     .select("slug")
     .single();
 
@@ -107,6 +111,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       features: data.features ? data.features.split(",").map((feature) => feature.trim()) : [],
     })
     .eq("id", id)
+    .eq("is_deleted", false)
     .select("slug")
     .single();
 
@@ -142,19 +147,25 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 // RLS does the real authorization here: vehicles_delete_own_draft restricts
 // a lister to deleting only their own draft-status vehicles, while
 // vehicles_delete_admin gives admins unrestricted delete — same pattern the
-// admin listings API already uses for its own delete action. vehicle_images
-// rows cascade-delete via their FK; the underlying R2 objects are left
-// orphaned, matching the admin delete action's existing behavior (no R2
-// cleanup happens there either).
+// Soft delete — moves the listing into the 10-day recoverable "Deleted
+// Listings" state (see migration 0022) rather than removing it immediately.
+// soft_delete_vehicle() is a SECURITY DEFINER RPC that enforces ownership/
+// admin authorization itself and computes deleted_at/deleted_by/
+// deleted_by_role/permanent_delete_at server-side — a client can never set
+// those fields directly, only ever trigger this one narrow action.
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireAdminOrLister();
   const { id } = await params;
   const supabase = await createClient();
-  const { error } = await supabase.from("vehicles").delete().eq("id", id);
 
+  const { data: vehicle } = await supabase.from("vehicles").select("slug").eq("id", id).maybeSingle();
+
+  const { error } = await supabase.rpc("soft_delete_vehicle", { p_vehicle_id: id });
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: "Listing deleted." });
+  if (vehicle) await notifyPublicSiteToRevalidate(vehicle.slug);
+
+  return NextResponse.json({ message: "Listing moved to Deleted Listings." });
 }

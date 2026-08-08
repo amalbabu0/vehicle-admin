@@ -20,6 +20,7 @@ export async function GET(request: Request) {
     .from("vehicles")
     .select("id, name, status")
     .eq("lister_id", profile.id)
+    .eq("is_deleted", false)
     .or(`name.ilike.%${safe}%,model.ilike.%${safe}%`)
     .limit(8);
 

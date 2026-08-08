@@ -6,6 +6,7 @@ import {
   ScrollText,
   Star,
   Settings,
+  Trash2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,5 +28,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3, description: "Growth and listing analytics" },
   { label: "Activity Logs", href: "/admin/activity-logs", icon: ScrollText, description: "Audit trail of admin actions" },
   { label: "Reviews", href: "/admin/reviews", icon: Star, description: "Moderate customer reviews" },
+  { label: "Deleted Listings", href: "/admin/deleted-listings", icon: Trash2, description: "Recover or permanently delete listings within the 10-day window" },
   { label: "Settings", href: "/admin/settings", icon: Settings, description: "Site configuration" },
 ];

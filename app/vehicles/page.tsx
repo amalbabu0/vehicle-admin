@@ -67,6 +67,7 @@ export default async function VehiclesPage(props: {
     supabase
       .from("vehicles")
       .select(VEHICLE_LIST_SELECT)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false })
       .range(from, to),
     getLocationLookup(),

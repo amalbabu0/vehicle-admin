@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   const supabase = await createClient();
   const [{ count }, { data: userData }, securityAlerts] = await Promise.all([
-    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("status", "pending_approval"),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("status", "pending_approval").eq("is_deleted", false),
     supabase.auth.getUser(),
     getLoginAttackAlerts(),
   ]);

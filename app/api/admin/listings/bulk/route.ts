@@ -50,8 +50,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: `${ids.length} listing(s) featured.` });
   }
 
-  const { error } = await supabase.from("vehicles").delete().in("id", ids);
-  if (error) return NextResponse.json({ message: error.message }, { status: 500 });
-  await logBulkAction("listing_deleted", ids);
-  return NextResponse.json({ message: `${ids.length} listing(s) deleted.` });
+  // Soft delete — moves each listing into the 10-day recoverable "Deleted
+  // Listings" state (see migration 0022). soft_delete_vehicle() already
+  // logs its own audit event per listing, so no separate logBulkAction
+  // call here (unlike the other branches above).
+  const results = await Promise.all(ids.map((id) => supabase.rpc("soft_delete_vehicle", { p_vehicle_id: id })));
+  const failed = results.filter((r) => r.error).length;
+  if (failed === ids.length) {
+    return NextResponse.json({ message: "Couldn't delete the selected listing(s)." }, { status: 500 });
+  }
+  return NextResponse.json({ message: `${ids.length - failed} listing(s) moved to Deleted Listings.` });
 }

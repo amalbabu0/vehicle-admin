@@ -43,16 +43,28 @@ const envSchema = z.object({
   TURNSTILE_SITE_KEY: z.string().min(1),
   TURNSTILE_SECRET_KEY: z.string().min(1),
 
-  SITE_URL: z.url(),
+  // Normalized to strip any trailing slash: call sites do
+  // `${env.SITE_URL}/path`, and a trailing slash here produces a literal
+  // double slash that doesn't string-match Supabase's redirect URL
+  // allow-list — a real bug (Supabase falls back to the bare Site URL for
+  // anything it doesn't recognize), not cosmetic. This is why the OTP
+  // sign-in email's link and the forgot-password link were landing on
+  // the homepage instead of their real destination.
+  SITE_URL: z.url().transform((url) => url.replace(/\/+$/, "")),
   // The PUBLIC user site's URL (different domain from this admin app's own
   // SITE_URL) — used to build shareable vehicle links, e.g. for WhatsApp
-  // sharing from the vehicle list. No trailing slash.
-  PUBLIC_SITE_URL: z.url(),
+  // sharing from the vehicle list. Also normalized, same reason.
+  PUBLIC_SITE_URL: z.url().transform((url) => url.replace(/\/+$/, "")),
   // Shared secret with the user app's POST /api/revalidate — must match its
   // REVALIDATE_SECRET exactly. Lets a status change here instantly refresh
   // the cached public vehicle page instead of waiting out its revalidate
   // window.
   REVALIDATE_SECRET: z.string().min(1),
+  // Vercel Cron sends this as `Authorization: Bearer <CRON_SECRET>` on every
+  // scheduled request (see vercel.json + app/api/cron/cleanup-deleted-
+  // vehicles/route.ts) — checked so the cleanup endpoint can't be triggered
+  // by an arbitrary request hitting its URL.
+  CRON_SECRET: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

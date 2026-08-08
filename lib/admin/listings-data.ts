@@ -98,7 +98,12 @@ export async function getListingsPage(
   pageSize: number
 ): Promise<{ listings: AdminListingRow[]; total: number }> {
   const supabase = await createClient();
-  let query = supabase.from("vehicles").select(LISTING_SELECT, { count: "exact" });
+  // Admin's own RLS (vehicles_select_admin) has no is_deleted restriction —
+  // it sees everything, deliberately, so the Deleted Listings page
+  // (getDeletedListingsPage below) can reuse the same select. This
+  // function is specifically the *active* listings table, so the exclusion
+  // has to happen here at the query level.
+  let query = supabase.from("vehicles").select(LISTING_SELECT, { count: "exact" }).eq("is_deleted", false);
 
   const [featuredIds, locations] = await Promise.all([getFeaturedIds(), getLocationLookup()]);
 
@@ -159,6 +164,83 @@ export async function getListingsPage(
   });
 
   return { listings, total: count ?? 0 };
+}
+
+// Deleted Listings (admin sees every lister's + admins' own deletions) —
+// deliberately a separate select from LISTING_SELECT above rather than a
+// tab within it: different columns entirely (who deleted it, when, days
+// remaining), and admin_profiles needs disambiguating a third way since
+// vehicles now has three FKs into it (lister_id, approved_by, deleted_by).
+const DELETED_LISTING_SELECT = `
+  id, name, slug, status, lease_amount, lease_period,
+  deleted_at, deleted_by_role, permanent_delete_at,
+  admin_profiles!vehicles_lister_id_fkey ( full_name ),
+  deleted_by_profile:admin_profiles!vehicles_deleted_by_fkey ( full_name ),
+  vehicle_images ( url, thumbnail_url, is_cover, sort_order )
+`;
+
+type DeletedListingRow = {
+  id: string;
+  name: string;
+  slug: string;
+  status: VehicleStatus;
+  lease_amount: number;
+  lease_period: string;
+  deleted_at: string;
+  deleted_by_role: Database["public"]["Enums"]["admin_role"] | null;
+  permanent_delete_at: string;
+  admin_profiles: { full_name: string | null } | null;
+  deleted_by_profile: { full_name: string | null } | null;
+  vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
+};
+
+export type DeletedListingItem = {
+  id: string;
+  name: string;
+  slug: string;
+  status: VehicleStatus;
+  leaseAmount: number;
+  leasePeriod: string;
+  listerName: string | null;
+  deletedByName: string | null;
+  deletedByRole: Database["public"]["Enums"]["admin_role"] | null;
+  deletedAt: string;
+  permanentDeleteAt: string;
+  coverImageUrl: string | null;
+  coverThumbnailUrl: string | null;
+};
+
+/** Every currently-soft-deleted listing, any lister — admin's own
+ * vehicles_select_admin RLS policy has no is_deleted restriction, so this
+ * is just the mirror-image filter of getListingsPage's is_deleted=false. */
+export async function getDeletedListings(): Promise<DeletedListingItem[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("vehicles")
+    .select(DELETED_LISTING_SELECT)
+    .eq("is_deleted", true)
+    .order("deleted_at", { ascending: false });
+
+  const rows = (data ?? []) as unknown as DeletedListingRow[];
+
+  return rows.map((row) => {
+    const cover = row.vehicle_images.find((image) => image.is_cover) ?? [...row.vehicle_images].sort((a, b) => a.sort_order - b.sort_order)[0];
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      status: row.status,
+      leaseAmount: row.lease_amount,
+      leasePeriod: row.lease_period,
+      listerName: row.admin_profiles?.full_name ?? null,
+      deletedByName: row.deleted_by_profile?.full_name ?? null,
+      deletedByRole: row.deleted_by_role,
+      deletedAt: row.deleted_at,
+      permanentDeleteAt: row.permanent_delete_at,
+      coverImageUrl: cover?.url ?? null,
+      coverThumbnailUrl: cover?.thumbnail_url ?? null,
+    };
+  });
 }
 
 export type ListerOption = { id: string; name: string };

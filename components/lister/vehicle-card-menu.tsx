@@ -44,7 +44,7 @@ export function VehicleCardMenu({
         toast.error(payload.message || "Unable to delete listing.");
         return;
       }
-      toast.success("Listing deleted.");
+      toast.success("Listing moved to Deleted Listings.");
       setConfirmDelete(false);
       router.refresh();
     });
@@ -85,8 +85,8 @@ export function VehicleCardMenu({
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Listing?</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure you want to permanently delete this listing? This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>Move this listing to Deleted Listings?</AlertDialogTitle>
+            <AlertDialogDescription>The listing will be kept for 10 days before permanent deletion, and can be restored anytime before then.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

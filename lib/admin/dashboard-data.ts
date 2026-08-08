@@ -31,12 +31,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     activeUsers,
   ] = await Promise.all([
     supabase.from("user_profiles").select("id", { count: "exact", head: true }),
-    supabase.from("vehicles").select("id", { count: "exact", head: true }),
-    supabase.from("vehicles").select("id", { count: "exact", head: true }).match(STATUS_COLUMN_QUERY("pending_approval")),
-    supabase.from("vehicles").select("id", { count: "exact", head: true }).match(STATUS_COLUMN_QUERY("published")),
-    supabase.from("vehicles").select("id", { count: "exact", head: true }).match(STATUS_COLUMN_QUERY("rejected")),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("is_deleted", false),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).match(STATUS_COLUMN_QUERY("pending_approval")).eq("is_deleted", false),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).match(STATUS_COLUMN_QUERY("published")).eq("is_deleted", false),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).match(STATUS_COLUMN_QUERY("rejected")).eq("is_deleted", false),
     supabase.from("site_settings").select("value").eq("key", "featured_listing_ids").maybeSingle(),
-    supabase.from("vehicles").select("id", { count: "exact", head: true }).gte("created_at", startOfToday.toISOString()),
+    supabase.from("vehicles").select("id", { count: "exact", head: true }).gte("created_at", startOfToday.toISOString()).eq("is_deleted", false),
     getActiveUserCount(),
   ]);
 
@@ -123,6 +123,7 @@ export async function getLatestListings(limit = 5): Promise<LatestListing[]> {
   const { data } = await supabase
     .from("vehicles")
     .select("id, name, status, created_at, lease_amount")
+    .eq("is_deleted", false)
     .order("created_at", { ascending: false })
     .limit(limit);
   return (data ?? []).map((row) => ({ id: row.id, name: row.name, status: row.status, createdAt: row.created_at, leaseAmount: row.lease_amount }));
@@ -132,7 +133,7 @@ export type MostViewedListing = { id: string; name: string; viewCount: number };
 
 export async function getMostViewedListings(limit = 5): Promise<MostViewedListing[]> {
   const supabase = await createClient();
-  const { data } = await supabase.from("vehicles").select("id, name, view_count").order("view_count", { ascending: false }).limit(limit);
+  const { data } = await supabase.from("vehicles").select("id, name, view_count").eq("is_deleted", false).order("view_count", { ascending: false }).limit(limit);
   return (data ?? []).map((row) => ({ id: row.id, name: row.name, viewCount: row.view_count }));
 }
 

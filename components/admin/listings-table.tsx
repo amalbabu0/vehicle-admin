@@ -8,6 +8,16 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ListingRowActions } from "@/components/admin/listing-row-actions";
 import type { AdminListingRow } from "@/lib/admin/listings-data";
 
@@ -26,6 +36,7 @@ export function ListingsTable({ initialListings }: { initialListings: Row[] }) {
   const [listings, setListings] = useState(initialListings);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isBulkPending, setIsBulkPending] = useState(false);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
 
   const allSelected = listings.length > 0 && selected.size === listings.length;
 
@@ -69,6 +80,7 @@ export function ListingsTable({ initialListings }: { initialListings: Row[] }) {
       toast.success(payload.message);
       if (action === "delete") {
         setListings((prev) => prev.filter((listing) => !ids.includes(listing.id)));
+        setConfirmBulkDelete(false);
       } else if (action === "approve") {
         setListings((prev) => prev.map((listing) => (ids.includes(listing.id) ? { ...listing, status: "published" as const } : listing)));
       } else if (action === "reject") {
@@ -96,7 +108,7 @@ export function ListingsTable({ initialListings }: { initialListings: Row[] }) {
           <Button type="button" size="sm" variant="outline" disabled={isBulkPending} onClick={() => runBulk("feature")} className="gap-1.5">
             <Star className="size-3.5" /> Feature
           </Button>
-          <Button type="button" size="sm" variant="destructive" disabled={isBulkPending} onClick={() => runBulk("delete")} className="gap-1.5">
+          <Button type="button" size="sm" variant="destructive" disabled={isBulkPending} onClick={() => setConfirmBulkDelete(true)} className="gap-1.5">
             <Trash2 className="size-3.5" /> Delete
           </Button>
         </div>
@@ -190,6 +202,21 @@ export function ListingsTable({ initialListings }: { initialListings: Row[] }) {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={confirmBulkDelete} onOpenChange={setConfirmBulkDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Move {selected.size} listing{selected.size === 1 ? "" : "s"} to Deleted Listings?</AlertDialogTitle>
+            <AlertDialogDescription>Each will be kept for 10 days before permanent deletion, and can be restored anytime before then.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => runBulk("delete")} disabled={isBulkPending}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -17,6 +17,7 @@ export async function GET(request: Request) {
       .from("vehicles")
       .select("id, name, slug, status")
       .or(`name.ilike.%${safe}%,model.ilike.%${safe}%`)
+      .eq("is_deleted", false)
       .limit(5),
     supabase
       .from("user_profiles")

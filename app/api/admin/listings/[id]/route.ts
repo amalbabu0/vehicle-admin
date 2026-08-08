@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import * as z from "zod";
 import { requireAdmin } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
+import { env } from "@/lib/env";
 import type { Json } from "@/lib/supabase/database.types";
 
 const actionSchema = z.object({
-  action: z.enum(["approve", "reject", "feature", "unfeature", "delete"]),
+  action: z.enum(["approve", "reject", "feature", "unfeature", "delete", "restore"]),
   reason: z.string().optional(),
 });
 
@@ -20,6 +21,21 @@ async function toggleFeatured(vehicleId: string, featured: boolean) {
   const current = Array.isArray(data?.value) ? (data.value as string[]) : [];
   const next = featured ? [...new Set([...current, vehicleId])] : current.filter((id) => id !== vehicleId);
   await supabase.from("site_settings").update({ value: next }).eq("key", "featured_listing_ids");
+}
+
+/** Best-effort, mirrors app/api/vehicles/[id]/route.ts's own copy of this —
+ * see that file for why a failure here must never fail the request. */
+async function notifyPublicSiteToRevalidate(slug: string) {
+  try {
+    await fetch(`${env.PUBLIC_SITE_URL}/api/revalidate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-revalidate-secret": env.REVALIDATE_SECRET },
+      body: JSON.stringify({ slug }),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch {
+    // Swallowed — see comment above.
+  }
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -57,8 +73,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ message: action === "feature" ? "Listing featured." : "Listing unfeatured." });
   }
 
-  const { error } = await supabase.from("vehicles").delete().eq("id", id);
+  // Both delete and restore need the slug to revalidate the public site's
+  // cached pages, so look it up once before either RPC call.
+  const { data: vehicle } = await supabase.from("vehicles").select("slug").eq("id", id).maybeSingle();
+
+  if (action === "restore") {
+    const { error } = await supabase.rpc("restore_vehicle", { p_vehicle_id: id });
+    if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+    if (vehicle) await notifyPublicSiteToRevalidate(vehicle.slug);
+    return NextResponse.json({ message: "Listing restored." });
+  }
+
+  // Soft delete — moves the listing into the 10-day recoverable "Deleted
+  // Listings" state (see migration 0022), not an immediate hard delete.
+  // Permanent deletion is a separate, dedicated endpoint (see
+  // app/api/admin/listings/[id]/permanent-delete/route.ts).
+  const { error } = await supabase.rpc("soft_delete_vehicle", { p_vehicle_id: id });
   if (error) return NextResponse.json({ message: error.message }, { status: 500 });
-  await logAction("listing_deleted", id);
-  return NextResponse.json({ message: "Listing deleted." });
+  if (vehicle) await notifyPublicSiteToRevalidate(vehicle.slug);
+  return NextResponse.json({ message: "Listing moved to Deleted Listings." });
 }
