@@ -3,7 +3,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Users as UsersIcon, Heart } from "lucide-react";
 import { getUsersPage } from "@/lib/admin/users-data";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { UsersFilters } from "@/components/admin/users-filters";
@@ -60,6 +60,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
                   <TableCell>
                     <Link href={`/admin/users/${user.id}`} className="flex items-center gap-3 text-foreground no-underline">
                       <Avatar>
+                        <AvatarImage src={user.avatarUrl ?? undefined} alt={user.fullName ?? user.email ?? "User"} />
                         <AvatarFallback>{(user.fullName ?? user.email ?? "?").charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">

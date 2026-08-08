@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { formatDistanceToNow, format } from "date-fns";
 import { ArrowLeft, Mail, Phone, Calendar, Clock } from "lucide-react";
 import { getUserById, getUserFavoriteVehicles } from "@/lib/admin/users-data";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserRowActions } from "@/components/admin/user-row-actions";
@@ -30,6 +30,7 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="size-14">
+              <AvatarImage src={user.avatarUrl ?? undefined} alt={user.fullName ?? user.email ?? "User"} />
               <AvatarFallback className="text-lg">{(user.fullName ?? user.email ?? "?").charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
