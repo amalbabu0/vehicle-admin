@@ -64,7 +64,7 @@ export default function LoginPage() {
       {state?.otpRequired ? (
         <form action={otpFormAction} className="mt-6 space-y-4">
           <p className="text-sm text-muted-foreground">
-            We sent a 6-digit code to <span className="font-medium text-foreground">{state.email}</span>. Enter it below to finish signing in.
+            We sent a sign-in code to <span className="font-medium text-foreground">{state.email}</span>. Enter it below to finish signing in.
           </p>
 
           <input type="hidden" name="email" value={state.email} />
@@ -76,9 +76,9 @@ export default function LoginPage() {
               name="otp"
               inputMode="numeric"
               autoComplete="one-time-code"
-              maxLength={6}
-              placeholder="000000"
-              className="text-center text-lg tracking-[0.5em]"
+              maxLength={10}
+              placeholder="Enter the code from your email"
+              className="text-center text-lg tracking-[0.3em]"
               required
             />
             {otpState?.errors?.otp && <p className="text-sm text-destructive">{otpState.errors.otp[0]}</p>}

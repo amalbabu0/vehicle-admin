@@ -37,7 +37,12 @@ const resetPasswordSchema = z.object({
 
 const verifyOtpSchema = z.object({
   email: z.email({ error: "Enter a valid email address." }).trim(),
-  otp: z.string().regex(/^\d{6}$/, { error: "Enter the 6-digit code." }),
+  // Not hardcoded to 6 digits: this project's live Auth settings actually
+  // issue an 8-digit code (config.toml says 6, but that file is stale
+  // against the real project — see the login OTP commit). Rather than
+  // guess the exact configured length here too, accept any reasonable
+  // numeric code and let verifyOtp() itself be the real check.
+  otp: z.string().trim().regex(/^\d{4,10}$/, { error: "Enter the code from your email." }),
 });
 
 export type ActionState = {
