@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, LogOut, Monitor, Moon, PlusCircle, Settings, Sun } from "lucide-react";
+import { LogOut, Monitor, Moon, PlusCircle, Settings, Sun } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { LISTER_NAV_ITEMS } from "@/lib/lister/nav-items";
 import type { ListerTheme } from "@/lib/lister/use-lister-theme";
@@ -65,7 +65,6 @@ export function ListerHeader({
             <p className="mt-3 w-full truncate text-sm font-medium">{profile.email}</p>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem disabled className="min-h-10 gap-3 px-3 py-2 opacity-60"><Heart className="size-4" /> Favorites</DropdownMenuItem>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="min-h-10 gap-3 px-3 py-2">
               {theme === "dark" ? <Moon className="size-4" /> : theme === "light" ? <Sun className="size-4" /> : <Monitor className="size-4" />} Theme
