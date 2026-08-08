@@ -19,7 +19,7 @@ export default async function ListerLayout({ children }: { children: ReactNode }
   const { data: userData } = await supabase.auth.getUser();
 
   return (
-    <ListerShell profile={{ fullName: profile.full_name, email: userData.user?.email ?? "" }}>
+    <ListerShell profile={{ fullName: profile.full_name, email: userData.user?.email ?? "", avatarUrl: profile.avatar_url }}>
       {children}
     </ListerShell>
   );
