@@ -162,7 +162,15 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
 
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false },
+      options: {
+        shouldCreateUser: false,
+        // Without this, Supabase falls back to the project's global Site
+        // URL setting — which is the user app's domain, since this
+        // project is shared between both apps. The emailed link's "Sign
+        // in" button was landing on keralaleasehub.online instead of
+        // ctl.keralaleasehub.online because of exactly that.
+        emailRedirectTo: `${env.SITE_URL}/auth/callback?next=/`,
+      },
     });
     if (otpError) {
       await logFailedLogin(email, ip, "otp_send_failed");
