@@ -35,9 +35,19 @@ const resetPasswordSchema = z.object({
   password: passwordSchema,
 });
 
+const verifyOtpSchema = z.object({
+  email: z.email({ error: "Enter a valid email address." }).trim(),
+  otp: z.string().regex(/^\d{6}$/, { error: "Enter the 6-digit code." }),
+});
+
 export type ActionState = {
   errors?: Record<string, string[]>;
   message?: string;
+  /** Set by login() for an admin account whose password just checked out —
+   * the client shows the OTP-entry form instead of navigating away. See
+   * verifyAdminOtp() below for why the session isn't valid yet at this point. */
+  otpRequired?: boolean;
+  email?: string;
 } | undefined;
 
 async function clientIp(): Promise<string> {
@@ -135,6 +145,66 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
       await logFailedLogin(email, ip, "unauthorized_email");
       return { message: "This account doesn't have access to the admin portal." };
     }
+
+    // Password verified and the account is authorized — but the admin
+    // role requires a second factor. signInWithPassword already created a
+    // real, valid session the moment the password checked out; sign it
+    // back out immediately so a correct password alone can never leave a
+    // usable session sitting in the browser. The account isn't actually
+    // considered logged in until verifyAdminOtp() below succeeds, which is
+    // what creates the session that sticks.
+    await supabase.auth.signOut();
+
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    });
+    if (otpError) {
+      await logFailedLogin(email, ip, "otp_send_failed");
+      return { message: "Couldn't send your sign-in code. Please try again." };
+    }
+
+    return { otpRequired: true, email };
+  }
+
+  await logAuditEvent("login", data.user.id);
+  redirect("/");
+}
+
+// ============================================================================
+// verifyAdminOtp — second factor for admin (not lister) accounts, see login()
+// ============================================================================
+
+export async function verifyAdminOtp(_prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const emailInput = formData.get("email");
+  const validated = verifyOtpSchema.safeParse({
+    email: emailInput,
+    otp: formData.get("otp"),
+  });
+
+  if (!validated.success) {
+    return {
+      errors: z.flattenError(validated.error).fieldErrors as Record<string, string[]>,
+      otpRequired: true,
+      email: typeof emailInput === "string" ? emailInput : undefined,
+    };
+  }
+
+  const { email, otp } = validated.data;
+  const ip = await clientIp();
+
+  const { success: withinLimit } = await checkRateLimit(authRateLimit, `otp-verify:${email}`);
+  if (!withinLimit) {
+    await logFailedLogin(email, ip, "otp_rate_limited");
+    return { message: "Too many attempts. Sign in again to request a new code." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.verifyOtp({ email, token: otp, type: "email" });
+
+  if (error || !data.user) {
+    await logFailedLogin(email, ip, "otp_invalid");
+    return { message: "Incorrect or expired code. Try again.", otpRequired: true, email };
   }
 
   await logAuditEvent("login", data.user.id);
