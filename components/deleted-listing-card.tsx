@@ -77,7 +77,7 @@ export function DeletedListingCard({
         toast.error(payload.message || "Unable to permanently delete listing.");
         return;
       }
-      toast.success("Listing permanently deleted.");
+      toast.success("Listing permanently deleted successfully.");
       setConfirmPermanent(false);
       router.refresh();
     });
@@ -144,7 +144,8 @@ export function DeletedListingCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Permanently delete this listing?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove the listing, images, cached data, and associated records. This action cannot be undone.
+              This action will permanently remove the listing and all associated data. The listing, images, cached data,
+              search data, and related records will be deleted. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

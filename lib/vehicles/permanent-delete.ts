@@ -48,7 +48,7 @@ export async function permanentlyDeleteVehicle(
 ): Promise<PermanentDeleteResult> {
   const service = createServiceRoleClient();
 
-  const { data: vehicle } = await service.from("vehicles").select("slug").eq("id", vehicleId).maybeSingle();
+  const { data: vehicle } = await service.from("vehicles").select("name, slug").eq("id", vehicleId).maybeSingle();
   if (!vehicle) {
     return { ok: true, alreadyGone: true };
   }
@@ -65,7 +65,18 @@ export async function permanentlyDeleteVehicle(
     const result = await deleteR2ObjectsByUrl(imageUrls);
     imagesDeleted = result.deleted;
   } catch (error) {
-    return { ok: false, stage: "r2_cleanup", error: error instanceof Error ? error.message : "Unknown R2 error" };
+    const message = error instanceof Error ? error.message : "Unknown R2 error";
+    // Recorded even on failure — an admin retrying a stuck deletion should
+    // be able to see in the audit trail that an earlier attempt failed
+    // and why, not just silence until it eventually succeeds.
+    await service.from("audit_logs").insert({
+      actor_id: actor.id,
+      action: "vehicle_permanently_deleted",
+      entity_type: "vehicle",
+      entity_id: vehicleId,
+      metadata: { triggered_by: actor.role, listing_name: vehicle.name, status: "FAILED", stage: "r2_cleanup", error: message },
+    });
+    return { ok: false, stage: "r2_cleanup", error: message };
   }
 
   // vehicle_images, favorites, enquiries, reports, etc. all cascade-delete
@@ -78,7 +89,7 @@ export async function permanentlyDeleteVehicle(
     action: "vehicle_permanently_deleted",
     entity_type: "vehicle",
     entity_id: vehicleId,
-    metadata: { triggered_by: actor.role, images_deleted: imagesDeleted },
+    metadata: { triggered_by: actor.role, listing_name: vehicle.name, status: "SUCCESS", images_deleted: imagesDeleted },
   });
 
   await notifyPublicSiteToRevalidate(vehicle.slug);
