@@ -59,7 +59,7 @@ export function ListerHeader({
             <Avatar><AvatarImage src={profile.avatarUrl ?? undefined} alt="Your profile" /><AvatarFallback>{initial}</AvatarFallback></Avatar>
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" sideOffset={8} className="w-72 p-2">
+        <DropdownMenuContent align="end" sideOffset={8} className="w-[calc(100vw-1.5rem)] max-w-72 p-2">
           <div className="flex flex-col items-center px-3 py-4 text-center">
             <Avatar className="size-16"><AvatarImage src={profile.avatarUrl ?? undefined} alt="Your profile" /><AvatarFallback className="text-xl">{initial}</AvatarFallback></Avatar>
             <p className="mt-3 w-full truncate text-sm font-medium">{profile.email}</p>
