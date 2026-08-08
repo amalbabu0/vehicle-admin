@@ -6,6 +6,7 @@ import { StatusBadge, FeaturedBadge } from "@/components/lister/status-badge";
 import { ListerVehicleActions } from "@/components/lister/lister-vehicle-actions";
 import { VehicleCardMenu } from "@/components/lister/vehicle-card-menu";
 import { ShareVehicleMenu } from "@/components/share-vehicle-menu";
+import { ShareIconButton } from "@/components/share-icon-button";
 import type { ListerVehicleRow } from "@/lib/lister/vehicles-data";
 
 export function VehicleCard({
@@ -37,7 +38,8 @@ export function VehicleCard({
           {vehicle.featured ? <FeaturedBadge /> : null}
         </div>
 
-        <div className="absolute right-2 top-2">
+        <div className="absolute right-2 top-2 flex items-center gap-1.5">
+          <ShareIconButton url={shareUrl} />
           <VehicleCardMenu id={vehicle.id} shareUrl={shareUrl} showViewDetails={isPublished} />
         </div>
       </div>
