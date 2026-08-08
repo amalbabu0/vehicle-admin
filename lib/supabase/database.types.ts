@@ -652,6 +652,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      email_has_account: { Args: { p_email: string }; Returns: boolean }
       get_brand_vehicle_counts: {
         Args: never
         Returns: {
