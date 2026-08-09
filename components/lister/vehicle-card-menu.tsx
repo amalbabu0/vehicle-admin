@@ -74,19 +74,19 @@ export function VehicleCardMenu({
           {showViewDetails ? (
             <DropdownMenuItem asChild>
               <a href={shareUrl} target="_blank" rel="noopener noreferrer">
-                <Eye className="size-4" /> View Details
+                <Eye className="size-4" /> View
               </a>
             </DropdownMenuItem>
           ) : null}
           <DropdownMenuItem asChild>
             <Link href={`/lister/vehicles/${id}/edit`}>
-              <Pencil className="size-4" /> Edit Vehicle
+              <Pencil className="size-4" /> Edit
             </Link>
           </DropdownMenuItem>
           <ListerVehicleActions id={id} status={status} asMenuItem />
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
-            <Trash2 className="size-4" /> Delete Listing
+            <Trash2 className="size-4" /> Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

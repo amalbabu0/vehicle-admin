@@ -17,7 +17,7 @@ export type ListerVehicleCardItem = {
  * pattern as useListerTheme — not something that needs to survive across
  * devices, so localStorage rather than a profile column. */
 export function ListerVehiclesView({ items }: { items: ListerVehicleCardItem[] }) {
-  const [isListView, setIsListView] = useLocalStorageBoolean("lister:vehicles-view-list", false);
+  const [isListView, setIsListView] = useLocalStorageBoolean("lister:vehicles-view-list", true);
 
   return (
     <div className="space-y-4">

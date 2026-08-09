@@ -18,7 +18,11 @@ type VehicleStatus = Database["public"]["Enums"]["vehicle_status"];
  *     and back into the normal review workflow rather than archiving it)
  *   rejected -> Resubmit (pending_approval; an admin already said no once,
  *     so this asks for review again rather than silently republishing)
- *   pending_approval/sold -> nothing shown
+ *   pending_approval -> Publish (lets the lister publish directly instead
+ *     of waiting on review — the PATCH endpoint already allows any
+ *     lister-initiated status transition on their own listing, so this
+ *     only exposes what the backend already permitted)
+ *   sold -> nothing shown
  * Delete lives in the card's dropdown menu (vehicle-card-menu.tsx), not
  * here. Rendered as a DropdownMenuItem inside that same menu (asMenuItem)
  * or as a standalone Button — same transition logic either way. */
@@ -49,6 +53,7 @@ const ACTIONS: Partial<
     successMessage: "Resubmitted for review.",
     buttonClassName: "",
   },
+  pending_approval: { label: "Publish", icon: Upload, nextStatus: "published", successMessage: "Listing published.", buttonClassName: "" },
   published: {
     label: "Withdraw",
     icon: Undo2,

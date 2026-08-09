@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, LogOut, Monitor, Moon, PlusCircle, Settings, Sun } from "lucide-react";
+import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { LISTER_NAV_ITEMS } from "@/lib/lister/nav-items";
 import type { ListerTheme } from "@/lib/lister/use-lister-theme";
@@ -11,7 +11,6 @@ import { ListerMobileNav } from "@/components/lister/lister-mobile-nav";
 import { ListerSearch } from "@/components/lister/lister-search";
 import { ListerClock } from "@/components/lister/lister-clock";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,9 +46,6 @@ export function ListerHeader({
       <ListerMobileNav />
       <h1 className="min-w-0 flex-1 truncate text-base font-semibold lg:text-lg">{title}</h1>
       <ListerSearch />
-      <Link href="/lister/vehicles/add" className="no-underline">
-        <Button type="button" variant="outline" size="icon" className="size-11" aria-label="Add vehicle"><PlusCircle className="size-5" /></Button>
-      </Link>
       <ListerClock />
 
       <DropdownMenu onOpenChange={(open) => { if (!open) setThemeExpanded(false); }}>

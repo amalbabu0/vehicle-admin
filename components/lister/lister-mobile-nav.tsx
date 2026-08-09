@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Car, Menu } from "lucide-react";
+import Image from "next/image";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ListerNavList } from "@/components/lister/lister-nav-list";
@@ -21,8 +22,8 @@ export function ListerMobileNav() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0">
-        <SheetTitle className="flex items-center gap-2 border-b border-border px-4 py-4">
-          <Car className="size-5 text-primary" /> Kerala Lease Hub
+        <SheetTitle className="flex items-center border-b border-border px-4 py-4">
+          <Image src="/branding/logo-footer.webp" alt="Kerala Lease Hub" width={160} height={45} className="h-8 w-auto" priority />
         </SheetTitle>
         <div className="p-3">
           <ListerNavList onNavigate={() => setOpen(false)} />

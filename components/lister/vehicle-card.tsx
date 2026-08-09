@@ -29,7 +29,7 @@ export function VehicleCard({
   const isPublished = vehicle.status === "published";
   const cardImageUrl = vehicle.coverThumbnailUrl ?? vehicle.coverImageUrl;
   const altText = [vehicle.name, vehicle.registrationYear, vehicle.districtName ? `in ${vehicle.districtName}` : null].filter(Boolean).join(" ");
-  const subtitle = [vehicle.brandName, vehicle.registrationYear].filter(Boolean).join(" • ");
+  const subtitle = vehicle.registrationYear ? String(vehicle.registrationYear) : "";
 
   const image = cardImageUrl ? (
     <Image
