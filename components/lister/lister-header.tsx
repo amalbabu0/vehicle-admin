@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Monitor, Moon, PlusCircle, Settings, Sun } from "lucide-react";
+import { ChevronDown, LogOut, Monitor, Moon, PlusCircle, Settings, Sun } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { LISTER_NAV_ITEMS } from "@/lib/lister/nav-items";
 import type { ListerTheme } from "@/lib/lister/use-lister-theme";
@@ -18,9 +19,6 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -42,6 +40,7 @@ export function ListerHeader({
 }) {
   const title = usePageTitle();
   const initial = (profile.fullName ?? profile.email).charAt(0).toUpperCase();
+  const [themeExpanded, setThemeExpanded] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur-xl sm:gap-3 sm:px-4">
@@ -53,7 +52,7 @@ export function ListerHeader({
       </Link>
       <ListerClock />
 
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={(open) => { if (!open) setThemeExpanded(false); }}>
         <DropdownMenuTrigger asChild>
           <button type="button" className="flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open profile menu">
             <Avatar><AvatarImage src={profile.avatarUrl ?? undefined} alt="Your profile" /><AvatarFallback>{initial}</AvatarFallback></Avatar>
@@ -65,18 +64,24 @@ export function ListerHeader({
             <p className="mt-3 w-full truncate text-sm font-medium">{profile.email}</p>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="min-h-10 gap-3 px-3 py-2">
-              {theme === "dark" ? <Moon className="size-4" /> : theme === "light" ? <Sun className="size-4" /> : <Monitor className="size-4" />} Theme
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="min-w-36 p-1">
-              <DropdownMenuRadioGroup value={theme} onValueChange={(value) => onThemeChange(value as ListerTheme)}>
-                <DropdownMenuRadioItem value="light"><Sun className="size-4" /> Light</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark"><Moon className="size-4" /> Dark</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="system"><Monitor className="size-4" /> System</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
+          <DropdownMenuItem
+            className="min-h-10 gap-3 px-3 py-2"
+            onSelect={(event) => {
+              event.preventDefault();
+              setThemeExpanded((open) => !open);
+            }}
+          >
+            {theme === "dark" ? <Moon className="size-4" /> : theme === "light" ? <Sun className="size-4" /> : <Monitor className="size-4" />}
+            Theme
+            <ChevronDown className={`ml-auto size-4 shrink-0 transition-transform ${themeExpanded ? "rotate-180" : ""}`} />
+          </DropdownMenuItem>
+          {themeExpanded && (
+            <DropdownMenuRadioGroup value={theme} onValueChange={(value) => onThemeChange(value as ListerTheme)} className="flex flex-col gap-0.5 py-0.5 pl-2">
+              <DropdownMenuRadioItem value="light" className="min-h-9 gap-3 px-3 py-1.5"><Sun className="size-4" /> Light</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark" className="min-h-9 gap-3 px-3 py-1.5"><Moon className="size-4" /> Dark</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="system" className="min-h-9 gap-3 px-3 py-1.5"><Monitor className="size-4" /> System</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          )}
           <DropdownMenuItem asChild className="min-h-10 gap-3 px-3 py-2"><Link href="/lister/settings"><Settings className="size-4" /> Settings</Link></DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild variant="destructive" className="min-h-10 gap-3 px-3 py-2">
