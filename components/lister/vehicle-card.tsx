@@ -57,7 +57,7 @@ export function VehicleCard({
   ) : null;
 
   const shareRow = isPublished ? (
-    <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} />
+    <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} size="lg" />
   ) : null;
 
   if (view === "list") {

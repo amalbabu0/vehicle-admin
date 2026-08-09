@@ -12,18 +12,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { buildWhatsAppShareUrl } from "@/lib/vehicles/share";
+import { cn } from "@/lib/utils";
 
 export function ShareVehicleMenu({
   message,
   url,
   imageUrl,
   fileName,
+  size = "default",
 }: {
   message: string;
   url: string;
   imageUrl: string | null;
   fileName: string;
+  /** "lg" is opt-in for callers that want a bigger touch target — default
+   * keeps every existing usage (admin's own vehicle pages) pixel-identical. */
+  size?: "default" | "lg";
 }) {
+  const isLarge = size === "lg";
   const [isDownloading, setIsDownloading] = useState(false);
 
   const shareOnWhatsApp = () => {
@@ -94,9 +100,12 @@ export function ShareVehicleMenu({
             type="button"
             onClick={shareOnWhatsApp}
             aria-label="Share on WhatsApp"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#25D366] transition hover:bg-[#25D366]/15"
+            className={cn(
+              "flex items-center gap-1.5 font-medium text-[#25D366] transition hover:bg-[#25D366]/15",
+              isLarge ? "px-4 py-2.5 text-base" : "px-3 py-1.5 text-sm"
+            )}
           >
-            <WhatsAppIcon className="size-4" />
+            <WhatsAppIcon className={isLarge ? "size-5" : "size-4"} />
             <span className="hidden sm:inline">Share</span>
           </button>
         </TooltipTrigger>
@@ -108,9 +117,12 @@ export function ShareVehicleMenu({
           <button
             type="button"
             aria-label="More share options"
-            className="flex items-center border-l border-[#25D366]/30 px-1.5 text-[#25D366] transition hover:bg-[#25D366]/15"
+            className={cn(
+              "flex items-center border-l border-[#25D366]/30 text-[#25D366] transition hover:bg-[#25D366]/15",
+              isLarge ? "px-2.5" : "px-1.5"
+            )}
           >
-            <ChevronDown className="size-3.5" />
+            <ChevronDown className={isLarge ? "size-4" : "size-3.5"} />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
