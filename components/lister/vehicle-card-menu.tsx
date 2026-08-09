@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Eye, Pencil, Trash2, ChevronDown } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -56,11 +56,11 @@ export function VehicleCardMenu({
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
-            size="sm"
-            className="h-9 gap-1 rounded-full bg-background/95 px-3 text-foreground shadow-sm hover:bg-background active:scale-95"
+            size="icon"
+            className="size-9 rounded-full bg-background/95 text-foreground shadow-sm hover:bg-background active:scale-95"
             aria-label="Listing actions"
           >
-            <Pencil className="size-3.5" /> Edit <ChevronDown className="size-3.5" />
+            <Pencil className="size-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
