@@ -1,0 +1,12 @@
+-- Removes "Maruti Suzuki" from the shared brands catalog (seeded by
+-- 0008_seed_car_brands.sql) so it no longer appears in the Brand picker
+-- across every app that reads it (lister/admin listing forms, public
+-- search filters). brands.id is `references brands (id) on delete set
+-- null` on vehicles.brand_id (see 0004_split_profiles.sql), so any
+-- existing listing that used this brand keeps its own name/model text and
+-- simply loses the brand join — no listings are deleted or blocked by
+-- this. A lister can still type "Maruti Suzuki" as a free-text brand
+-- (Combobox allowCustomValue + auto-create in lib/vehicles/references.ts),
+-- which would silently reinsert it; this migration only removes the
+-- seeded row as of now, it doesn't block it going forward.
+delete from public.brands where slug = 'maruti-suzuki';
