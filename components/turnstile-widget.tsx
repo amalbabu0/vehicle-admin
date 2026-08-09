@@ -82,7 +82,7 @@ export const TurnstileWidget = forwardRef<
         defer
         onLoad={() => setScriptLoaded(true)}
       />
-      <div ref={containerRef} />
+      <div ref={containerRef} className="flex justify-center" />
     </>
   );
 });
