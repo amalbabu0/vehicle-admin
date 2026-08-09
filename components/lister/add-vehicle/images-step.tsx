@@ -5,8 +5,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { Camera, ChevronLeft, ChevronRight, Loader2, Star, X } from "lucide-react";
 import type { WizardFormState, WizardImage } from "@/components/lister/add-vehicle/types";
-
-const MAX_IMAGES = 20;
+import { MAX_VEHICLE_IMAGES as MAX_IMAGES } from "@/components/lister/add-vehicle/constants";
 
 export function ImagesStep({
   formState,

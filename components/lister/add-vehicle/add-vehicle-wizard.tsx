@@ -66,14 +66,24 @@ export function AddVehicleWizard({
   mode = "create",
   vehicleId,
   initialState,
+  onDirtyChange,
 }: {
   mode?: "create" | "edit";
   vehicleId?: string;
   initialState?: WizardFormState;
+  /** Optional — lets a parent (the Quick/Detailed listing-type switcher) know
+   * whether this form has unsaved input, without this component needing to
+   * know why. Unused by the plain create/edit pages. */
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [formState, setFormState] = useState<WizardFormState>(initialState ?? EMPTY_WIZARD_STATE);
+
+  useEffect(() => {
+    onDirtyChange?.(JSON.stringify(formState) !== JSON.stringify(initialState ?? EMPTY_WIZARD_STATE));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formState]);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);

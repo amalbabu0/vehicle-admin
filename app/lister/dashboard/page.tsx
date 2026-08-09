@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { Car, Clock, CheckCircle2, XCircle, PlusCircle, PackageOpen } from "lucide-react";
+import { Car, CheckCircle2, PlusCircle, PackageOpen } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth/dal";
 import { getListerStats, getListerRecentVehicles } from "@/lib/lister/dashboard-data";
 import { ListerStatCard } from "@/components/lister/lister-stat-card";
@@ -24,9 +24,7 @@ export default async function ListerDashboardPage() {
 
       <div className="grid grid-cols-2 gap-3">
         <ListerStatCard label="Total Vehicles" value={stats.total} icon={Car} />
-        <ListerStatCard label="Pending" value={stats.pending} icon={Clock} tone="warning" />
         <ListerStatCard label="Published" value={stats.approved} icon={CheckCircle2} tone="success" />
-        <ListerStatCard label="Rejected" value={stats.rejected} icon={XCircle} tone="destructive" />
       </div>
 
       <Link href="/lister/vehicles/add" className="block no-underline">
