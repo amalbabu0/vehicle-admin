@@ -413,6 +413,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_suspended: boolean
           phone: string | null
           profile_image_consent: boolean
           profile_image_consent_at: string | null
@@ -423,6 +424,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          is_suspended?: boolean
           phone?: string | null
           profile_image_consent?: boolean
           profile_image_consent_at?: string | null
@@ -433,6 +435,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_suspended?: boolean
           phone?: string | null
           profile_image_consent?: boolean
           profile_image_consent_at?: string | null
@@ -741,6 +744,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_audit_events_bulk: {
+        Args: {
+          p_action: string
+          p_entity_ids: string[]
+          p_entity_type: string
+          p_metadata?: Json
+        }
+        Returns: undefined
+      }
       log_failed_login: {
         Args: { p_email: string; p_ip: string; p_reason: string }
         Returns: undefined
@@ -751,6 +763,14 @@ export type Database = {
       soft_delete_vehicle: {
         Args: { p_vehicle_id: string }
         Returns: undefined
+      }
+      soft_delete_vehicles: {
+        Args: { p_vehicle_ids: string[] }
+        Returns: {
+          error_message: string
+          success: boolean
+          vehicle_id: string
+        }[]
       }
     }
     Enums: {

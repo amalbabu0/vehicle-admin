@@ -8,9 +8,10 @@ const bulkSchema = z.object({
   action: z.enum(["approve", "reject", "feature", "delete"]),
 });
 
+// One insert instead of one RPC round trip per id (see migration 0030).
 async function logBulkAction(action: string, ids: string[]) {
   const supabase = await createClient();
-  await Promise.all(ids.map((id) => supabase.rpc("log_audit_event", { p_action: action, p_entity_type: "vehicle", p_entity_id: id, p_metadata: { bulk: true } })));
+  await supabase.rpc("log_audit_events_bulk", { p_action: action, p_entity_type: "vehicle", p_entity_ids: ids, p_metadata: { bulk: true } });
 }
 
 export async function POST(request: Request) {
@@ -51,11 +52,16 @@ export async function POST(request: Request) {
   }
 
   // Soft delete — moves each listing into the 10-day recoverable "Deleted
-  // Listings" state (see migration 0022). soft_delete_vehicle() already
-  // logs its own audit event per listing, so no separate logBulkAction
-  // call here (unlike the other branches above).
-  const results = await Promise.all(ids.map((id) => supabase.rpc("soft_delete_vehicle", { p_vehicle_id: id })));
-  const failed = results.filter((r) => r.error).length;
+  // Listings" state (see migration 0022). soft_delete_vehicles() loops
+  // per id inside Postgres (one round trip for the whole batch instead of
+  // one per id — see migration 0030) and already logs its own audit event
+  // per listing via the singular soft_delete_vehicle() it wraps, so no
+  // separate logBulkAction call here (unlike the other branches above).
+  const { data: results, error } = await supabase.rpc("soft_delete_vehicles", { p_vehicle_ids: ids });
+  if (error) {
+    return NextResponse.json({ message: "Couldn't delete the selected listing(s)." }, { status: 500 });
+  }
+  const failed = (results ?? []).filter((r) => !r.success).length;
   if (failed === ids.length) {
     return NextResponse.json({ message: "Couldn't delete the selected listing(s)." }, { status: 500 });
   }

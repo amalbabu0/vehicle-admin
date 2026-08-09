@@ -26,16 +26,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ message: "Invalid action." }, { status: 400 });
   }
 
+  const isSuspending = validation.data.action === "suspend";
   const service = createServiceRoleClient();
   const { error } = await service.auth.admin.updateUserById(id, {
-    ban_duration: validation.data.action === "suspend" ? SUSPEND_DURATION : "none",
+    ban_duration: isSuspending ? SUSPEND_DURATION : "none",
   });
 
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 
-  await logUserAction(validation.data.action === "suspend" ? "user_suspended" : "user_activated", id);
+  // Mirrored onto user_profiles so the Users list can filter/paginate by
+  // status at the DB level instead of an Admin API call per row — see
+  // lib/admin/users-data.ts getUsersPage(). This is the only code path
+  // that changes ban status, so it's the only place that needs to keep
+  // the mirror in sync.
+  await service.from("user_profiles").update({ is_suspended: isSuspending }).eq("id", id);
+
+  await logUserAction(isSuspending ? "user_suspended" : "user_activated", id);
 
   return NextResponse.json({ message: validation.data.action === "suspend" ? "User suspended." : "User activated." });
 }

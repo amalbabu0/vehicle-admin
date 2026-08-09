@@ -22,16 +22,14 @@ function isSuspended(bannedUntil: string | null | undefined): boolean {
 }
 
 /**
- * Ban status and email live in auth.users, not user_profiles, so this
- * enriches each profile row with a per-user admin API lookup (bounded to
- * the current page, not every user) rather than the alternative of
- * paginating through auth.admin.listUsers() for everyone — that only
- * scales for the "how many signed in recently" dashboard stat, not a
- * searchable/filterable table. Status filtering and pagination happen in
- * JS after enrichment since suspended/active isn't a column we can filter
- * on at the DB level without a denormalized mirror column — fine at
- * today's user counts; revisit (add a synced is_suspended column) once the
- * user base is large enough for this fetch to matter.
+ * Email and last-sign-in still only live in auth.users, so each page of
+ * results gets a per-row Supabase Auth Admin API lookup — but suspension
+ * status is mirrored onto user_profiles.is_suspended (kept in sync by the
+ * suspend/activate route, see app/api/admin/users/[id]/route.ts), so
+ * filtering and pagination both happen in the DB query itself. Previously
+ * this fetched up to 500 profiles and ran an Admin API call for every one
+ * of them regardless of the requested page size, before filtering/slicing
+ * in JS — an N+1 that scaled with total user count, not page size.
  */
 export async function getUsersPage(
   filter: UsersFilter,
@@ -39,49 +37,46 @@ export async function getUsersPage(
   pageSize: number
 ): Promise<{ users: AdminUserRow[]; total: number }> {
   const supabase = await createClient();
-  let query = supabase.from("user_profiles").select("id, full_name, phone, avatar_url, created_at").order("created_at", { ascending: false });
+  let query = supabase
+    .from("user_profiles")
+    .select("id, full_name, phone, avatar_url, created_at, is_suspended", { count: "exact" })
+    .order("created_at", { ascending: false });
 
   if (filter.search?.trim()) {
     const safe = filter.search.replace(/[,()%]/g, " ").trim();
     query = query.ilike("full_name", `%${safe}%`);
   }
+  if (filter.status === "active") query = query.eq("is_suspended", false);
+  if (filter.status === "suspended") query = query.eq("is_suspended", true);
 
-  const { data: profiles } = await query.limit(500);
+  const start = (page - 1) * pageSize;
+  const { data: profiles, count } = await query.range(start, start + pageSize - 1);
   const rows = profiles ?? [];
 
   const service = createServiceRoleClient();
-  const enriched = await Promise.all(
-    rows.map(async (row) => {
-      const { data: authData } = await service.auth.admin.getUserById(row.id);
-      const bannedUntil = authData?.user?.banned_until ?? null;
-      return {
-        id: row.id,
-        fullName: row.full_name,
-        phone: row.phone,
-        avatarUrl: row.avatar_url,
-        createdAt: row.created_at,
-        email: authData?.user?.email ?? null,
-        suspended: isSuspended(bannedUntil),
-        lastSignInAt: authData?.user?.last_sign_in_at ?? null,
-        favoritesCount: 0,
-      } satisfies AdminUserRow;
-    })
-  );
+  const [enriched, favoriteCounts] = await Promise.all([
+    Promise.all(
+      rows.map(async (row) => {
+        const { data: authData } = await service.auth.admin.getUserById(row.id);
+        return {
+          id: row.id,
+          fullName: row.full_name,
+          phone: row.phone,
+          avatarUrl: row.avatar_url,
+          createdAt: row.created_at,
+          email: authData?.user?.email ?? null,
+          suspended: row.is_suspended,
+          lastSignInAt: authData?.user?.last_sign_in_at ?? null,
+          favoritesCount: 0,
+        } satisfies AdminUserRow;
+      })
+    ),
+    getFavoriteCounts(rows.map((row) => row.id)),
+  ]);
 
-  const favoriteCounts = await getFavoriteCounts(rows.map((row) => row.id));
   for (const user of enriched) user.favoritesCount = favoriteCounts.get(user.id) ?? 0;
 
-  const filtered = enriched.filter((user) => {
-    if (filter.status === "active") return !user.suspended;
-    if (filter.status === "suspended") return user.suspended;
-    return true;
-  });
-
-  const total = filtered.length;
-  const start = (page - 1) * pageSize;
-  const users = filtered.slice(start, start + pageSize);
-
-  return { users, total };
+  return { users: enriched, total: count ?? enriched.length };
 }
 
 // favorites RLS is `user_id = auth.uid()` only — no admin-override policy
@@ -126,8 +121,10 @@ export async function getUserById(userId: string): Promise<AdminUserRow | null> 
   if (!profile) return null;
 
   const service = createServiceRoleClient();
-  const { data: authData } = await service.auth.admin.getUserById(userId);
-  const favoriteCounts = await getFavoriteCounts([userId]);
+  const [{ data: authData }, favoriteCounts] = await Promise.all([
+    service.auth.admin.getUserById(userId),
+    getFavoriteCounts([userId]),
+  ]);
 
   return {
     id: profile.id,
