@@ -2,7 +2,22 @@
 
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/lister/add-vehicle/field";
+import { Combobox, type ComboboxOption } from "@/components/combobox";
 import type { WizardFormState, FieldErrors } from "@/components/lister/add-vehicle/types";
+
+// Lease period is always in months, but ranges from a fixed term to a
+// range, so this offers the common shapes plus a custom fallback (the
+// vehicles.lease_period column is free text either way).
+const LEASE_PERIOD_OPTIONS: ComboboxOption[] = [
+  { value: "1 month", label: "1 month" },
+  { value: "3 months", label: "3 months" },
+  { value: "6 months", label: "6 months" },
+  { value: "12 months", label: "12 months" },
+  { value: "3-6 months", label: "3-6 months" },
+  { value: "6-12 months", label: "6-12 months" },
+  { value: "12-24 months", label: "12-24 months" },
+  { value: "24+ months", label: "24+ months" },
+];
 
 export function PricingStep({
   formState,
@@ -28,13 +43,15 @@ export function PricingStep({
       </Field>
 
       <Field htmlFor="leasePeriod" label="Lease period" error={errors.leasePeriod}>
-        <Input
-          id="leasePeriod"
-          type="text"
-          placeholder="e.g. per month, per year"
-          className="h-12"
+        <Combobox
           value={formState.leasePeriod}
-          onChange={(event) => onChange("leasePeriod", event.target.value)}
+          onChange={(value) => onChange("leasePeriod", value)}
+          options={LEASE_PERIOD_OPTIONS}
+          placeholder="Select lease period"
+          searchPlaceholder="Search or type a custom period…"
+          emptyText="No matching option — type to use a custom period."
+          allowCustomValue
+          triggerClassName="h-12"
         />
       </Field>
 

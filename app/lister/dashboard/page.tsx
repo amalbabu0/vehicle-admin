@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { Car, CheckCircle2, PlusCircle, PackageOpen } from "lucide-react";
+import { Car, PlusCircle, PackageOpen, Users } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth/dal";
-import { getListerStats, getListerRecentVehicles } from "@/lib/lister/dashboard-data";
+import { getListerStats, getListerRecentVehicles, getPublicUserCount } from "@/lib/lister/dashboard-data";
 import { ListerStatCard } from "@/components/lister/lister-stat-card";
 import { StatusBadge } from "@/components/lister/status-badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,11 @@ export const revalidate = 0;
 
 export default async function ListerDashboardPage() {
   const profile = await getCurrentProfile();
-  const [stats, recent] = await Promise.all([getListerStats(profile.id), getListerRecentVehicles(profile.id, 5)]);
+  const [stats, userCount, recent] = await Promise.all([
+    getListerStats(profile.id),
+    getPublicUserCount(),
+    getListerRecentVehicles(profile.id, 5),
+  ]);
 
   return (
     <div className="space-y-5">
@@ -23,8 +27,8 @@ export default async function ListerDashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <ListerStatCard label="Total Vehicles" value={stats.total} icon={Car} />
-        <ListerStatCard label="Published" value={stats.approved} icon={CheckCircle2} tone="success" />
+        <ListerStatCard label="Total Vehicles" value={stats.published} icon={Car} />
+        <ListerStatCard label="No. of Users" value={userCount} icon={Users} tone="success" />
       </div>
 
       <Link href="/lister/vehicles/add" className="block no-underline">

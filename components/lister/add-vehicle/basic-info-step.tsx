@@ -35,9 +35,11 @@ export function BasicInfoStep({
           options={brandOptions}
           placeholder="Select brand"
           searchPlaceholder="Search brands…"
+          emptyText="No matching brand — type to use a custom one."
           allowCustomValue
           triggerClassName="h-12"
         />
+        <p className="text-xs text-muted-foreground">Can&apos;t find it? Type the brand name and choose &ldquo;Use&rdquo; to add it.</p>
       </Field>
 
       <Field htmlFor="model" label="Model" error={errors.model}>
@@ -52,6 +54,7 @@ export function BasicInfoStep({
           disabled={!formState.brand}
           triggerClassName="h-12"
         />
+        <p className="text-xs text-muted-foreground">Can&apos;t find it? Type the model name and choose &ldquo;Use&rdquo; to add it.</p>
       </Field>
 
       <Field htmlFor="year" label="Registration year" error={errors.year}>
