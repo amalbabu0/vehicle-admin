@@ -134,7 +134,15 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
   if (profileError || !profile || (profile.role !== "admin" && profile.role !== "lister")) {
     await supabase.auth.signOut();
     await logFailedLogin(email, ip, "unauthorized_role");
-    return { message: "This account doesn't have access to the admin portal." };
+    // Same message as the invalid-credentials branch above (line ~124) —
+    // deliberately not distinguishing "wrong password" from "correct
+    // password, wrong role" in what the client sees. A different message
+    // here would turn this login form into an oracle for validating
+    // guessed/stolen passwords against every account on the platform
+    // (user_profiles included, since signInWithPassword checks the whole
+    // Supabase Auth user base, not just admin_profiles), without granting
+    // any actual admin access. See SECURITY.md.
+    return { message: "Incorrect email or password." };
   }
 
   if (profile.role === "admin") {
@@ -148,7 +156,9 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
     if (!allowedEmail || data.user.email?.toLowerCase() !== allowedEmail.toLowerCase()) {
       await supabase.auth.signOut();
       await logFailedLogin(email, ip, "unauthorized_email");
-      return { message: "This account doesn't have access to the admin portal." };
+      // Same reasoning as the role check above — identical message to the
+      // invalid-credentials branch, not a distinguishable one.
+      return { message: "Incorrect email or password." };
     }
 
     // Password verified and the account is authorized — but the admin

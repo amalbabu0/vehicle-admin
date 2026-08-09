@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/dal";
 import { getUsersPage } from "@/lib/admin/users-data";
-
-function toCsvField(value: string | number): string {
-  const text = String(value);
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
+import { toCsvField } from "@/lib/csv";
 
 export async function GET(request: Request) {
   await requireAdmin();
