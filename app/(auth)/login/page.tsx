@@ -3,7 +3,7 @@
 import { Suspense, useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { login, verifyAdminOtp } from "@/app/actions/auth";
+import { login, verifyLoginOtp } from "@/app/actions/auth";
 import { useSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,7 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = useSupabaseBrowserClient();
   const [state, formAction, pending] = useActionState(login, undefined);
-  const [otpState, otpFormAction, otpPending] = useActionState(verifyAdminOtp, undefined);
+  const [otpState, otpFormAction, otpPending] = useActionState(verifyLoginOtp, undefined);
   const [token, setToken] = useState("");
   const turnstileRef = useRef<TurnstileWidgetHandle>(null);
   const [prevState, setPrevState] = useState(state);

@@ -48,9 +48,10 @@ const verifyOtpSchema = z.object({
 export type ActionState = {
   errors?: Record<string, string[]>;
   message?: string;
-  /** Set by login() for an admin account whose password just checked out —
-   * the client shows the OTP-entry form instead of navigating away. See
-   * verifyAdminOtp() below for why the session isn't valid yet at this point. */
+  /** Set by login() once a password just checked out for any admin_profiles
+   * account (admin or lister) — the client shows the OTP-entry form instead
+   * of navigating away. See verifyLoginOtp() below for why the session
+   * isn't valid yet at this point. */
   otpRequired?: boolean;
   email?: string;
 } | undefined;
@@ -160,45 +161,44 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
       // invalid-credentials branch, not a distinguishable one.
       return { message: "Incorrect email or password." };
     }
-
-    // Password verified and the account is authorized — but the admin
-    // role requires a second factor. signInWithPassword already created a
-    // real, valid session the moment the password checked out; sign it
-    // back out immediately so a correct password alone can never leave a
-    // usable session sitting in the browser. The account isn't actually
-    // considered logged in until verifyAdminOtp() below succeeds, which is
-    // what creates the session that sticks.
-    await supabase.auth.signOut();
-
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-        // Without this, Supabase falls back to the project's global Site
-        // URL setting — which is the user app's domain, since this
-        // project is shared between both apps. The emailed link's "Sign
-        // in" button was landing on keralaleasehub.online instead of
-        // ctl.keralaleasehub.online because of exactly that.
-        emailRedirectTo: `${env.SITE_URL}/auth/callback?next=/`,
-      },
-    });
-    if (otpError) {
-      await logFailedLogin(email, ip, "otp_send_failed");
-      return { message: "Couldn't send your sign-in code. Please try again." };
-    }
-
-    return { otpRequired: true, email };
   }
 
-  await logAuditEvent("login", data.user.id);
-  redirect("/");
+  // Password verified and the account is authorized — every role
+  // (admin and lister) requires a second factor before the session
+  // sticks. signInWithPassword already created a real, valid session the
+  // moment the password checked out; sign it back out immediately so a
+  // correct password alone can never leave a usable session sitting in
+  // the browser. The account isn't actually considered logged in until
+  // verifyLoginOtp() below succeeds, which is what creates the session
+  // that sticks.
+  await supabase.auth.signOut();
+
+  const { error: otpError } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: false,
+      // Without this, Supabase falls back to the project's global Site
+      // URL setting — which is the user app's domain, since this
+      // project is shared between both apps. The emailed link's "Sign
+      // in" button was landing on keralaleasehub.online instead of
+      // ctl.keralaleasehub.online because of exactly that.
+      emailRedirectTo: `${env.SITE_URL}/auth/callback?next=/`,
+    },
+  });
+  if (otpError) {
+    await logFailedLogin(email, ip, "otp_send_failed");
+    return { message: "Couldn't send your sign-in code. Please try again." };
+  }
+
+  return { otpRequired: true, email };
 }
 
 // ============================================================================
-// verifyAdminOtp — second factor for admin (not lister) accounts, see login()
+// verifyLoginOtp — second factor for every admin_profiles account (admin
+// and lister), see login()
 // ============================================================================
 
-export async function verifyAdminOtp(_prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function verifyLoginOtp(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const emailInput = formData.get("email");
   const validated = verifyOtpSchema.safeParse({
     email: emailInput,
