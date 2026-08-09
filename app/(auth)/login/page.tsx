@@ -1,9 +1,11 @@
 "use client";
 
 import { Suspense, useActionState, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Car, Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight } from "lucide-react";
+import appIcon from "@/app/icon.png";
 import { login, verifyLoginOtp } from "@/app/actions/auth";
 import { useSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,11 +19,11 @@ const ERROR_MESSAGES: Record<string, string> = {
   link_failed: "Sign-in link was invalid or expired.",
 };
 
-// Supabase's live Auth settings issue an 8-digit code (config.toml says 6,
-// but that file is stale against the real project — see the login OTP
-// commit). This only controls how many boxes are drawn; the actual check
-// happens server-side in verifyOtpSchema, which accepts 4-10 digits.
-const OTP_LENGTH = 8;
+// Number of boxes drawn for the code. verifyOtpSchema accepts 4-10 digits
+// server-side regardless of this value, so it's purely a display choice —
+// keep it in sync with whatever length Supabase's Auth settings actually
+// send (config.toml currently says 6).
+const OTP_LENGTH = 6;
 
 function formatTimer(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60);
@@ -187,13 +189,8 @@ export default function LoginPage() {
   return (
     <>
       <div className="mb-6 flex flex-col items-center gap-3 text-center">
-        <div className="flex size-16 items-center justify-center rounded-full border border-border bg-muted/40">
-          <Car className="size-7 text-foreground" />
-        </div>
-        <div>
-          <h1 className="text-xl font-semibold">Sign in</h1>
-          <p className="mt-1 text-xs font-medium tracking-wider text-muted-foreground uppercase">Admin &amp; Lister Portal</p>
-        </div>
+        <Image src={appIcon} alt="" width={40} height={40} className="size-10" priority />
+        <h1 className="text-xl font-semibold">Sign in</h1>
       </div>
 
       <Suspense fallback={null}>
@@ -277,9 +274,7 @@ export default function LoginPage() {
           </div>
 
           <input type="hidden" name="turnstileToken" value={token} />
-          <div className="flex min-h-[60px] items-center justify-center rounded-lg border border-border bg-muted/20 p-2">
-            <TurnstileWidget ref={turnstileRef} action="login" onVerify={setToken} />
-          </div>
+          <TurnstileWidget ref={turnstileRef} action="login" onVerify={setToken} />
 
           {state?.message && (
             <p className="text-sm text-destructive" role="alert">
