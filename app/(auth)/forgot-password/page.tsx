@@ -12,13 +12,24 @@ export default function ForgotPasswordPage() {
   const [state, formAction, pending] = useActionState(forgotPassword, undefined);
   const [token, setToken] = useState("");
   const turnstileRef = useRef<TurnstileWidgetHandle>(null);
+  const [prevState, setPrevState] = useState(state);
 
   const sent = Boolean(state?.message && !state.errors);
+
+  // A failed submission means the token was already consumed server-side —
+  // clear it immediately (during render, not an effect: see
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)
+  // so the submit button disables right away instead of staying enabled
+  // with a stale token. The actual widget reset is a real external-system
+  // call, so that part stays in the effect below.
+  if (state !== prevState) {
+    setPrevState(state);
+    if (state?.message && !sent) setToken("");
+  }
 
   useEffect(() => {
     if (state?.message && !sent) {
       turnstileRef.current?.reset();
-      setToken("");
     }
   }, [state, sent]);
 

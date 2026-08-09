@@ -35,11 +35,19 @@ export default function LoginPage() {
   const [otpState, otpFormAction, otpPending] = useActionState(verifyAdminOtp, undefined);
   const [token, setToken] = useState("");
   const turnstileRef = useRef<TurnstileWidgetHandle>(null);
+  const [prevState, setPrevState] = useState(state);
+
+  // Same reasoning as forgot-password/page.tsx: clear the (now-consumed)
+  // token during render rather than an effect; the widget reset itself is
+  // a real external-system call, so that stays in the effect below.
+  if (state !== prevState) {
+    setPrevState(state);
+    if (state?.message) setToken("");
+  }
 
   useEffect(() => {
     if (state?.message) {
       turnstileRef.current?.reset();
-      setToken("");
     }
   }, [state]);
 

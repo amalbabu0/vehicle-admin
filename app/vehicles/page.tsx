@@ -49,7 +49,7 @@ type VehicleListRow = {
 };
 
 export default async function VehiclesPage(props: {
-  searchParams?: Promise<any>;
+  searchParams?: Promise<{ page?: string | string[] }>;
 }) {
   await requireAdminOrLister();
 

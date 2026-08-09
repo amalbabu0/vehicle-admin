@@ -210,6 +210,15 @@ export type DeletedListingItem = {
   coverThumbnailUrl: string | null;
 };
 
+// No pagination UI on this page (it's expected to stay small — the 10-day
+// auto-cleanup cron naturally caps steady-state volume), but an unbounded
+// select() is still a real query-cost ceiling risk if bulk-delete is used
+// repeatedly within a 10-day window. 200 matches the cap already used for
+// a single bulk action (see app/api/admin/listings/bulk/route.ts) as a
+// sane "should never realistically be hit" ceiling — add real .range()
+// pagination if it ever is.
+const DELETED_LISTINGS_LIMIT = 200;
+
 /** Every currently-soft-deleted listing, any lister — admin's own
  * vehicles_select_admin RLS policy has no is_deleted restriction, so this
  * is just the mirror-image filter of getListingsPage's is_deleted=false. */
@@ -219,7 +228,8 @@ export async function getDeletedListings(): Promise<DeletedListingItem[]> {
     .from("vehicles")
     .select(DELETED_LISTING_SELECT)
     .eq("is_deleted", true)
-    .order("deleted_at", { ascending: false });
+    .order("deleted_at", { ascending: false })
+    .limit(DELETED_LISTINGS_LIMIT);
 
   const rows = (data ?? []) as unknown as DeletedListingRow[];
 

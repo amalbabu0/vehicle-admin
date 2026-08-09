@@ -45,13 +45,24 @@ type VehicleRow = {
   vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
 
+// No pagination UI on the My Vehicles / Deleted Listings pages — safety
+// ceiling on an otherwise-unbounded select() rather than a real limit,
+// same reasoning as DELETED_LISTINGS_LIMIT in lib/admin/listings-data.ts.
+const LISTER_VEHICLES_LIMIT = 200;
+
 /** RLS (vehicles_select_own) scopes this to the signed-in lister's own
  * vehicles via the normal cookie-bound client — same reasoning as
  * dashboard-data.ts, no service-role client needed. */
 export async function getListerVehicles(listerId: string): Promise<ListerVehicleRow[]> {
   const supabase = await createClient();
   const [{ data }, locations, { data: featuredSetting }] = await Promise.all([
-    supabase.from("vehicles").select(VEHICLE_SELECT).eq("lister_id", listerId).eq("is_deleted", false).order("created_at", { ascending: false }),
+    supabase
+      .from("vehicles")
+      .select(VEHICLE_SELECT)
+      .eq("lister_id", listerId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false })
+      .limit(LISTER_VEHICLES_LIMIT),
     getLocationLookup(),
     // site_settings is publicly readable (RLS: using (true)), so this is a
     // plain select through the normal client, same admin-owned mechanism
@@ -131,7 +142,8 @@ export async function getListerDeletedVehicles(listerId: string): Promise<Lister
     .select(DELETED_VEHICLE_SELECT)
     .eq("lister_id", listerId)
     .eq("is_deleted", true)
-    .order("deleted_at", { ascending: false });
+    .order("deleted_at", { ascending: false })
+    .limit(LISTER_VEHICLES_LIMIT);
 
   const rows = (data ?? []) as unknown as DeletedVehicleRow[];
 
