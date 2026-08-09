@@ -10,6 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -22,13 +23,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ListerVehicleActions } from "@/components/lister/lister-vehicle-actions";
+import type { Database } from "@/lib/supabase/database.types";
+
+type VehicleStatus = Database["public"]["Enums"]["vehicle_status"];
 
 export function VehicleCardMenu({
   id,
+  status,
   shareUrl,
   showViewDetails,
 }: {
   id: string;
+  status: VehicleStatus;
   shareUrl: string;
   showViewDetails: boolean;
 }) {
@@ -76,6 +83,8 @@ export function VehicleCardMenu({
               <Pencil className="size-4" /> Edit Vehicle
             </Link>
           </DropdownMenuItem>
+          <ListerVehicleActions id={id} status={status} asMenuItem />
+          <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
             <Trash2 className="size-4" /> Delete Listing
           </DropdownMenuItem>

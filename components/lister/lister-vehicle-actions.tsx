@@ -3,22 +3,25 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Upload, RotateCcw, Undo2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import type { Database } from "@/lib/supabase/database.types";
 
 type VehicleStatus = Database["public"]["Enums"]["vehicle_status"];
 
-/** The single bottom-left status-transition button on a vehicle card — one
- * action at a time, chosen by current status:
+/** The single status-transition action for a vehicle — one at a time,
+ * chosen by current status:
  *   draft/archived -> Publish/Republish (published directly; these are the
  *     lister's own voluntary states, no review needed to go live)
  *   published -> Withdraw (pending_approval; pulls it off the public site
  *     and back into the normal review workflow rather than archiving it)
  *   rejected -> Resubmit (pending_approval; an admin already said no once,
  *     so this asks for review again rather than silently republishing)
- *   pending_approval -> nothing shown; only Edit/Delete/Share apply
+ *   pending_approval/sold -> nothing shown
  * Delete lives in the card's dropdown menu (vehicle-card-menu.tsx), not
- * here. */
+ * here. Rendered as a DropdownMenuItem inside that same menu (asMenuItem)
+ * or as a standalone Button — same transition logic either way. */
 async function patchStatus(id: string, status: VehicleStatus) {
   const response = await fetch(`/api/vehicles/${id}`, {
     method: "PATCH",
@@ -31,15 +34,51 @@ async function patchStatus(id: string, status: VehicleStatus) {
   }
 }
 
-export function ListerVehicleActions({ id, status }: { id: string; status: VehicleStatus }) {
+const ACTIONS: Partial<
+  Record<
+    VehicleStatus,
+    { label: string; icon: LucideIcon; nextStatus: VehicleStatus; successMessage: string; buttonClassName: string }
+  >
+> = {
+  draft: { label: "Publish", icon: Upload, nextStatus: "published", successMessage: "Listing published.", buttonClassName: "" },
+  archived: { label: "Republish", icon: Upload, nextStatus: "published", successMessage: "Listing republished.", buttonClassName: "" },
+  rejected: {
+    label: "Resubmit",
+    icon: RotateCcw,
+    nextStatus: "pending_approval",
+    successMessage: "Resubmitted for review.",
+    buttonClassName: "",
+  },
+  published: {
+    label: "Withdraw",
+    icon: Undo2,
+    nextStatus: "pending_approval",
+    successMessage: "Listing withdrawn — it's back in the review queue.",
+    buttonClassName: "border-amber-500/40 text-amber-700 hover:bg-amber-500/10 dark:text-amber-400",
+  },
+};
+
+export function ListerVehicleActions({
+  id,
+  status,
+  asMenuItem = false,
+}: {
+  id: string;
+  status: VehicleStatus;
+  /** Render as a DropdownMenuItem for use inside VehicleCardMenu's "Edit" list, instead of a standalone Button. */
+  asMenuItem?: boolean;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const run = (nextStatus: VehicleStatus, successMessage: string) => {
+  const action = ACTIONS[status];
+  if (!action) return null;
+
+  const run = () => {
     startTransition(async () => {
       try {
-        await patchStatus(id, nextStatus);
-        toast.success(successMessage);
+        await patchStatus(id, action.nextStatus);
+        toast.success(action.successMessage);
         router.refresh();
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Unable to update listing.");
@@ -47,43 +86,25 @@ export function ListerVehicleActions({ id, status }: { id: string; status: Vehic
     });
   };
 
-  if (status === "draft") {
+  const Icon = action.icon;
+
+  if (asMenuItem) {
     return (
-      <Button size="sm" className="min-h-12 active:scale-95" disabled={isPending} onClick={() => run("published", "Listing published.")}>
-        Publish
-      </Button>
+      <DropdownMenuItem onSelect={run} disabled={isPending}>
+        <Icon className="size-4" /> {action.label}
+      </DropdownMenuItem>
     );
   }
 
-  if (status === "archived") {
-    return (
-      <Button size="sm" className="min-h-12 active:scale-95" disabled={isPending} onClick={() => run("published", "Listing republished.")}>
-        Republish
-      </Button>
-    );
-  }
-
-  if (status === "rejected") {
-    return (
-      <Button size="sm" className="min-h-12 active:scale-95" disabled={isPending} onClick={() => run("pending_approval", "Resubmitted for review.")}>
-        Resubmit
-      </Button>
-    );
-  }
-
-  if (status === "published") {
-    return (
-      <Button
-        size="sm"
-        variant="outline"
-        className="min-h-12 border-amber-500/40 text-amber-700 hover:bg-amber-500/10 active:scale-95 dark:text-amber-400"
-        disabled={isPending}
-        onClick={() => run("pending_approval", "Listing withdrawn — it's back in the review queue.")}
-      >
-        Withdraw
-      </Button>
-    );
-  }
-
-  return null;
+  return (
+    <Button
+      size="sm"
+      variant={status === "published" ? "outline" : "default"}
+      className={`min-h-12 active:scale-95 ${action.buttonClassName}`}
+      disabled={isPending}
+      onClick={run}
+    >
+      {action.label}
+    </Button>
+  );
 }

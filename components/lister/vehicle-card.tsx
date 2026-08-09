@@ -3,11 +3,17 @@
 import Image from "next/image";
 import { MapPin, ImageOff } from "lucide-react";
 import { StatusBadge, FeaturedBadge } from "@/components/lister/status-badge";
-import { ListerVehicleActions } from "@/components/lister/lister-vehicle-actions";
 import { VehicleCardMenu } from "@/components/lister/vehicle-card-menu";
 import { ShareVehicleMenu } from "@/components/share-vehicle-menu";
-import { ShareIconButton } from "@/components/share-icon-button";
 import type { ListerVehicleRow } from "@/lib/lister/vehicles-data";
+
+/** leasePeriod is free text the lister typed (e.g. "3-6", "per month", "1 year") — append
+ * "months" only when they didn't already give it a unit, so "6 months" doesn't become
+ * "6 months months". */
+function formatLeasePeriod(leasePeriod: string) {
+  const trimmed = leasePeriod.trim();
+  return /month|year|week|day/i.test(trimmed) ? trimmed : `${trimmed} months`;
+}
 
 export function VehicleCard({
   vehicle,
@@ -21,7 +27,6 @@ export function VehicleCard({
   view?: "grid" | "list";
 }) {
   const isPublished = vehicle.status === "published";
-  const isPending = vehicle.status === "pending_approval";
   const cardImageUrl = vehicle.coverThumbnailUrl ?? vehicle.coverImageUrl;
   const altText = [vehicle.name, vehicle.registrationYear, vehicle.districtName ? `in ${vehicle.districtName}` : null].filter(Boolean).join(" ");
   const subtitle = [vehicle.brandName, vehicle.registrationYear].filter(Boolean).join(" • ");
@@ -51,6 +56,10 @@ export function VehicleCard({
     </p>
   ) : null;
 
+  const shareRow = isPublished ? (
+    <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} />
+  ) : null;
+
   if (view === "list") {
     return (
       <div className="flex gap-3 rounded-xl border border-border bg-card p-2.5 shadow-sm shadow-black/5 transition-all duration-200 hover:shadow-md">
@@ -72,7 +81,7 @@ export function VehicleCard({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-extrabold tracking-tight text-foreground">₹{vehicle.leaseAmount.toLocaleString("en-IN")}</span>
-                <span className="text-xs font-normal text-muted-foreground">/ {vehicle.leasePeriod}</span>
+                <span className="text-xs font-normal text-muted-foreground">/ {formatLeasePeriod(vehicle.leasePeriod)}</span>
               </div>
               {locationChip}
             </div>
@@ -80,21 +89,9 @@ export function VehicleCard({
             {rejectedBanner}
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">
-            <div className="flex flex-wrap items-center gap-2">
-              {!isPending ? (
-                <>
-                  <ListerVehicleActions id={vehicle.id} status={vehicle.status} />
-                  {isPublished ? (
-                    <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} />
-                  ) : null}
-                </>
-              ) : null}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <ShareIconButton url={shareUrl} />
-              <VehicleCardMenu id={vehicle.id} shareUrl={shareUrl} showViewDetails={isPublished} />
-            </div>
+          <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
+            <div>{shareRow}</div>
+            <VehicleCardMenu id={vehicle.id} status={vehicle.status} shareUrl={shareUrl} showViewDetails={isPublished} />
           </div>
         </div>
       </div>
@@ -112,10 +109,7 @@ export function VehicleCard({
             <StatusBadge status={vehicle.status} />
             {vehicle.featured ? <FeaturedBadge /> : null}
           </div>
-          <div className="flex flex-col items-end gap-1.5">
-            <ShareIconButton url={shareUrl} />
-            <VehicleCardMenu id={vehicle.id} shareUrl={shareUrl} showViewDetails={isPublished} />
-          </div>
+          <VehicleCardMenu id={vehicle.id} status={vehicle.status} shareUrl={shareUrl} showViewDetails={isPublished} />
         </div>
       </div>
 
@@ -128,23 +122,14 @@ export function VehicleCard({
         <div className="flex items-end justify-between gap-2">
           <div className="flex items-baseline gap-1">
             <span className="text-xl font-extrabold tracking-tight text-foreground">₹{vehicle.leaseAmount.toLocaleString("en-IN")}</span>
-            <span className="text-xs font-normal text-muted-foreground">/ {vehicle.leasePeriod}</span>
+            <span className="text-xs font-normal text-muted-foreground">/ {formatLeasePeriod(vehicle.leasePeriod)}</span>
           </div>
           {locationChip}
         </div>
 
         {rejectedBanner}
 
-        {!isPending ? (
-          <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-            <ListerVehicleActions id={vehicle.id} status={vehicle.status} />
-            {isPublished ? (
-              <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} />
-            ) : (
-              <span />
-            )}
-          </div>
-        ) : null}
+        {shareRow ? <div className="border-t border-border pt-3">{shareRow}</div> : null}
       </div>
     </div>
   );
