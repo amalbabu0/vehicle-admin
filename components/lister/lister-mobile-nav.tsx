@@ -23,7 +23,10 @@ export function ListerMobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0">
         <SheetTitle className="flex items-center border-b border-border px-4 py-4">
-          <Image src="/branding/logo-footer.webp" alt="Kerala Lease Hub" width={160} height={45} className="h-8 w-auto" priority />
+          <div className="relative h-8 w-28">
+            <Image src="/branding/logo-footer.webp" alt="Kerala Lease Hub" fill className="object-contain object-left dark:hidden" priority />
+            <Image src="/branding/logo-footer-dark.avif" alt="Kerala Lease Hub" fill className="hidden object-contain object-left dark:block" priority />
+          </div>
         </SheetTitle>
         <div className="p-3">
           <ListerNavList onNavigate={() => setOpen(false)} />
