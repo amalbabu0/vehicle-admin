@@ -3,7 +3,7 @@ import * as z from "zod";
 import { requireAdminOrLister } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 import { aiExtractRateLimit, checkRateLimit } from "@/lib/rate-limit";
-import { findLocationId } from "@/lib/vehicles/references";
+import { resolveLocationName } from "@/lib/vehicles/references";
 import { extractVehicleFromMessage, MAX_MESSAGE_LENGTH, type ExtractedVehicle } from "@/lib/ai/extract-vehicle";
 
 /**
@@ -91,12 +91,13 @@ export async function POST(request: Request) {
   const { locationName, ...fields } = extraction.fields;
 
   // Resolve the place NAME the model returned against the real locations
-  // table. No match means the lister picks it — never a guess, and never a
-  // model-supplied id (see the note in lib/ai/extract-vehicle.ts).
+  // table, falling back from town to district for the "Mannar, Alappuzha"
+  // shape these messages use. No match means the lister picks it — never a
+  // guess, and never a model-supplied id (see lib/ai/extract-vehicle.ts).
   let locationId: string | null = null;
   if (locationName) {
     const supabase = await createClient();
-    locationId = await findLocationId(supabase, locationName).catch(() => null);
+    locationId = await resolveLocationName(supabase, locationName).catch(() => null);
   }
 
   const resolved = { ...fields, locationId };
