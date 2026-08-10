@@ -40,6 +40,12 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.url(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
 
+  // Groq — powers Quick Listing's WhatsApp-message field extraction
+  // (lib/ai/extract-vehicle.ts). Server-only and metered per token, so it
+  // is never sent to the browser and every call sits behind an auth check
+  // plus its own rate limiter (see app/api/lister/quick-listing/route.ts).
+  GROQ_API_KEY: z.string().min(1),
+
   TURNSTILE_SITE_KEY: z.string().min(1),
   TURNSTILE_SECRET_KEY: z.string().min(1),
 

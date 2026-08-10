@@ -30,7 +30,11 @@ async function findBrandId(client: SupabaseClient<Database>, value: string) {
   return created.id;
 }
 
-async function findLocationId(client: SupabaseClient<Database>, value: string) {
+/** Exported for Quick Listing, which resolves a place NAME extracted from a
+ * WhatsApp message rather than an id picked from the combobox. Unlike
+ * findBrandId above this never creates a row — an unmatched place returns
+ * null and the lister picks the location themselves. */
+export async function findLocationId(client: SupabaseClient<Database>, value: string) {
   if (UUID_PATTERN.test(value)) return value;
   const names = [value.trim(), locationAliases[value.trim().toLowerCase()]].filter((name): name is string => Boolean(name));
   for (const name of names) {

@@ -17,6 +17,21 @@ export const authRateLimit = new Ratelimit({
   analytics: true,
 });
 
+/**
+ * 20 Quick Listing extractions per hour. Keyed on the lister's profile id,
+ * NOT their IP: this guards a metered third-party spend (Groq bills per
+ * token), which is a per-account cost, and a lister on mobile data changes
+ * IP constantly. Request count alone doesn't bound spend — the endpoint
+ * also caps input length before calling out and caps max_tokens on the
+ * response. See app/api/lister/quick-listing/route.ts.
+ */
+export const aiExtractRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, "1 h"),
+  prefix: "ratelimit:ai-extract",
+  analytics: true,
+});
+
 export async function checkRateLimit(
   limiter: Ratelimit,
   identifier: string

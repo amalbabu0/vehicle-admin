@@ -8,17 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MAX_VEHICLE_IMAGES } from "@/components/lister/add-vehicle/constants";
+import type { WizardImage } from "@/components/lister/add-vehicle/types";
 import {
-  EMPTY_QUICK_LISTING_STATE,
+  type QuickListingExtraction,
   type QuickListingImage,
-  type QuickListingPayload,
   type QuickListingState,
 } from "@/components/lister/add-vehicle/quick-listing-types";
 
-// Frontend-only validation, matching the recommended formats from the spec —
-// not a security boundary. Server-side validation happens once the future
-// agent/upload endpoint is connected (see app/api/uploads/vehicle-image for
-// the pattern the real upload will eventually reuse).
+// Frontend-only validation — not a security boundary. The upload endpoint
+// (app/api/uploads/vehicle-image) re-checks format and size server-side,
+// and the strict vehicleCreateSchema still runs when the pre-filled wizard
+// is finally submitted.
 const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
@@ -27,9 +27,14 @@ type QuickListingErrors = { message?: string; images?: string };
 export function QuickListingForm({
   state,
   onChange,
+  onExtracted,
 }: {
   state: QuickListingState;
   onChange: (next: QuickListingState) => void;
+  /** Hands the extracted fields + uploaded image URLs to the parent, which
+   * pre-fills the Detailed Listing wizard with them. Quick Listing never
+   * creates the listing itself — see app/api/lister/quick-listing/route.ts. */
+  onExtracted: (extraction: QuickListingExtraction) => void;
 }) {
   const [errors, setErrors] = useState<QuickListingErrors>({});
   const [isDragOver, setIsDragOver] = useState(false);
@@ -84,6 +89,28 @@ export function QuickListingForm({
     onChange({ ...state, images: state.images.filter((image) => image.id !== id) });
   };
 
+  /** Uploads through the same endpoint the Detailed Listing wizard uses, one
+   * request per file so a single failure doesn't lose the rest of the batch.
+   * Images never go to the extraction endpoint — only their resulting URLs
+   * are carried forward. */
+  const uploadImages = async (): Promise<WizardImage[] | null> => {
+    const uploaded: WizardImage[] = [];
+    for (const image of state.images) {
+      try {
+        const body = new FormData();
+        body.append("file", image.file);
+        const response = await fetch("/api/uploads/vehicle-image", { method: "POST", body });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || "Unable to upload image.");
+        uploaded.push({ url: payload.url, mediumUrl: payload.mediumUrl, thumbnailUrl: payload.thumbnailUrl });
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Unable to upload image.");
+        return null;
+      }
+    }
+    return uploaded;
+  };
+
   const handleSubmit = async () => {
     const trimmedMessage = state.message.trim();
     const nextErrors: QuickListingErrors = {};
@@ -94,18 +121,23 @@ export function QuickListingForm({
 
     setIsSubmitting(true);
     try {
-      // Prepared for the future agent/API — see FUTURE AGENT INTEGRATION.
-      // Nothing is sent anywhere yet; no such endpoint exists.
-      const payload: QuickListingPayload = {
-        type: "quick",
-        message: state.message,
-        images: state.images.map((image) => image.file),
-      };
-      void payload;
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      state.images.forEach((image) => URL.revokeObjectURL(image.previewUrl));
-      onChange(EMPTY_QUICK_LISTING_STATE);
-      toast.success("Quick listing details saved — automatic listing creation isn't connected yet.");
+      const imageUrls = await uploadImages();
+      if (!imageUrls) return;
+
+      const response = await fetch("/api/lister/quick-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: state.message }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        toast.error(payload.message || "Couldn't read the vehicle details from that message.");
+        return;
+      }
+
+      onExtracted({ fields: payload.fields, unresolved: payload.unresolved ?? [], imageUrls });
+    } catch {
+      toast.error("Couldn't reach the server. Check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -221,8 +253,11 @@ export function QuickListingForm({
 
       <Button type="button" className="min-h-13 w-full gap-2" onClick={handleSubmit} disabled={isSubmitting}>
         {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
-        {isSubmitting ? "Creating listing…" : "Create Listing"}
+        {isSubmitting ? "Reading details…" : "Create Listing"}
       </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        We&apos;ll read the details from your message and fill in the form for you to check before publishing.
+      </p>
     </div>
   );
 }
