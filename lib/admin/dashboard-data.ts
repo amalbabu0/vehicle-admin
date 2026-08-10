@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
+import { getLocationLookup } from "@/lib/vehicles/location-lookup";
 
 export type DashboardStats = {
   totalUsers: number;
@@ -116,17 +117,70 @@ export async function getLatestUsers(limit = 5): Promise<LatestUser[]> {
   return (data ?? []).map((row) => ({ id: row.id, fullName: row.full_name, createdAt: row.created_at }));
 }
 
-export type LatestListing = { id: string; name: string; status: string; createdAt: string; leaseAmount: number };
+export type LatestListing = {
+  id: string;
+  name: string;
+  slug: string;
+  brandName: string | null;
+  status: string;
+  createdAt: string;
+  leaseAmount: number;
+  leasePeriod: string;
+  registrationYear: number | null;
+  districtName: string | null;
+  coverImageUrl: string | null;
+  coverThumbnailUrl: string | null;
+};
+
+type LatestListingRow = {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  created_at: string;
+  lease_amount: number;
+  lease_period: string;
+  registration_year: number | null;
+  location_id: string | null;
+  brands: { name: string } | null;
+  vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
+};
 
 export async function getLatestListings(limit = 5): Promise<LatestListing[]> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("vehicles")
-    .select("id, name, status, created_at, lease_amount")
-    .eq("is_deleted", false)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  return (data ?? []).map((row) => ({ id: row.id, name: row.name, status: row.status, createdAt: row.created_at, leaseAmount: row.lease_amount }));
+  const [{ data }, locations] = await Promise.all([
+    supabase
+      .from("vehicles")
+      .select(
+        `id, name, slug, status, created_at, lease_amount, lease_period, registration_year, location_id,
+         brands ( name ),
+         vehicle_images ( url, thumbnail_url, is_cover, sort_order )`
+      )
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    getLocationLookup(),
+  ]);
+
+  const rows = (data ?? []) as unknown as LatestListingRow[];
+
+  return rows.map((row) => {
+    const cover = row.vehicle_images.find((image) => image.is_cover) ?? [...row.vehicle_images].sort((a, b) => a.sort_order - b.sort_order)[0];
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      brandName: row.brands?.name ?? null,
+      status: row.status,
+      createdAt: row.created_at,
+      leaseAmount: row.lease_amount,
+      leasePeriod: row.lease_period,
+      registrationYear: row.registration_year,
+      districtName: row.location_id ? (locations.get(row.location_id)?.districtName ?? null) : null,
+      coverImageUrl: cover?.url ?? null,
+      coverThumbnailUrl: cover?.thumbnail_url ?? null,
+    };
+  });
 }
 
 export type MostViewedListing = { id: string; name: string; viewCount: number };

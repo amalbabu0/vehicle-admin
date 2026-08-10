@@ -61,7 +61,7 @@ export function AdminSearch() {
         </span>
         <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium">Ctrl K</kbd>
       </Button>
-      <Button type="button" variant="outline" size="icon" onClick={() => setOpen(true)} className="sm:hidden" aria-label="Search">
+      <Button type="button" variant="outline" size="icon" onClick={() => setOpen(true)} className="rounded-full sm:hidden" aria-label="Search">
         <Search className="size-4" />
       </Button>
 

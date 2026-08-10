@@ -13,8 +13,17 @@ export function StatCard({
   tone?: "default" | "warning" | "success" | "destructive";
 }) {
   return (
-    <div className="glass-surface glass-specular rounded-(--glass-radius-lg) p-5">
-      <div className="flex items-center justify-between">
+    <div className="glass-surface glass-specular relative overflow-hidden rounded-(--glass-radius-lg) p-5">
+      <Icon
+        className={cn(
+          "pointer-events-none absolute -top-4 -right-4 size-28 opacity-[0.07]",
+          tone === "warning" && "text-amber-600",
+          tone === "success" && "text-emerald-600",
+          tone === "destructive" && "text-destructive",
+          tone === "default" && "text-primary"
+        )}
+      />
+      <div className="relative flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{label}</p>
         <div
           className={cn(
@@ -28,7 +37,7 @@ export function StatCard({
           <Icon className="size-4.5" />
         </div>
       </div>
-      <p className="mt-3 text-2xl font-semibold tabular-nums">{typeof value === "number" ? value.toLocaleString("en-IN") : value}</p>
+      <p className="relative mt-3 text-2xl font-semibold tabular-nums">{typeof value === "number" ? value.toLocaleString("en-IN") : value}</p>
     </div>
   );
 }

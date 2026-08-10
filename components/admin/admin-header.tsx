@@ -9,7 +9,6 @@ import type { LoginAttackAlert } from "@/lib/admin/security-data";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { AdminClock } from "@/components/admin/admin-clock";
 import { AdminThemeToggle } from "@/components/admin/admin-theme-toggle";
-import { AdminMobileNav } from "@/components/admin/admin-mobile-nav";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,9 +46,7 @@ export function AdminHeader({
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
-      <AdminMobileNav />
-
-      <Breadcrumb className="hidden sm:block">
+      <Breadcrumb className="hidden lg:block">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -72,7 +69,7 @@ export function AdminHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="outline" size="icon" className="relative" aria-label="Quick actions">
+            <Button type="button" variant="outline" size="icon" className="relative rounded-full" aria-label="Quick actions">
               <Plus className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -94,7 +91,7 @@ export function AdminHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="outline" size="icon" className="relative" aria-label="Notifications">
+            <Button type="button" variant="outline" size="icon" className="relative rounded-full" aria-label="Notifications">
               <Bell className="size-4" />
               {notificationCount > 0 ? (
                 <Badge
@@ -135,32 +132,36 @@ export function AdminHeader({
 
         <AdminClock />
         <AdminThemeToggle dark={dark} onToggle={onToggleDark} />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button type="button" className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Admin profile menu">
-              <Avatar>
-                <AvatarFallback>{(profile.fullName ?? profile.email).charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <ChevronDown className="hidden size-3.5 text-muted-foreground sm:block" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
-              <p className="truncate">{profile.fullName ?? profile.email}</p>
-              <p className="truncate text-xs font-normal capitalize text-muted-foreground">{profile.role}</p>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild variant="destructive">
-              <form action={logout} className="w-full">
-                <button type="submit" className="flex w-full items-center gap-2">
-                  <LogOut className="size-4" /> Sign out
-                </button>
-              </form>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className="order-first flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring lg:order-none"
+            aria-label="Admin profile menu"
+          >
+            <Avatar>
+              <AvatarFallback>{(profile.fullName ?? profile.email).charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <ChevronDown className="hidden size-3.5 text-muted-foreground sm:block" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>
+            <p className="truncate">{profile.fullName ?? profile.email}</p>
+            <p className="truncate text-xs font-normal capitalize text-muted-foreground">{profile.role}</p>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild variant="destructive">
+            <form action={logout} className="w-full">
+              <button type="submit" className="flex w-full items-center gap-2">
+                <LogOut className="size-4" /> Sign out
+              </button>
+            </form>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }

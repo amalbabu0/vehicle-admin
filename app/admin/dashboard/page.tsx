@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { Users, Car, Clock, CheckCircle2, XCircle, Star, PlusCircle, UserCheck, Eye } from "lucide-react";
 import {
@@ -16,7 +17,10 @@ import {
 } from "@/lib/admin/dashboard-data";
 import { StatCard } from "@/components/admin/stat-card";
 import { DistributionBars } from "@/components/admin/distribution-bars";
-import { Badge } from "@/components/ui/badge";
+import { StatusDot } from "@/components/lister/status-badge";
+import { ShareVehicleMenu } from "@/components/share-vehicle-menu";
+import { buildVehicleShareMessage } from "@/lib/vehicles/share";
+import { env } from "@/lib/env";
 
 export const metadata: Metadata = { title: "Dashboard" };
 export const revalidate = 0;
@@ -131,20 +135,57 @@ export default async function AdminDashboardPage() {
           {latestListings.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">No listings yet.</p>
           ) : (
-            <ul className="mt-4 space-y-3">
-              {latestListings.map((listing) => (
-                <li key={listing.id} className="flex items-center justify-between gap-3 text-sm">
-                  <span className="truncate">{listing.name}</span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Badge variant="outline" className="capitalize">
-                      {listing.status.replaceAll("_", " ")}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(listing.createdAt), { addSuffix: true })}
-                    </span>
-                  </div>
-                </li>
-              ))}
+            <ul className="mt-4 flex flex-col gap-2">
+              {latestListings.map((listing) => {
+                const cardImageUrl = listing.coverThumbnailUrl ?? listing.coverImageUrl;
+                const shareUrl = `${env.PUBLIC_SITE_URL}/vehicles/${listing.slug}`;
+                const shareMessage = buildVehicleShareMessage(
+                  {
+                    name: listing.name,
+                    brandName: listing.brandName,
+                    model: null,
+                    registrationYear: listing.registrationYear,
+                    leaseAmount: listing.leaseAmount,
+                    leasePeriod: listing.leasePeriod,
+                    fuelType: null,
+                    transmission: null,
+                    kmDriven: null,
+                    ownershipCount: null,
+                    districtName: listing.districtName,
+                    condition: null,
+                    slug: listing.slug,
+                  },
+                  shareUrl
+                );
+
+                return (
+                  <li key={listing.id} className="flex items-center gap-3 rounded-xl bg-muted/60 p-2 pr-3 text-sm">
+                    <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+                      {cardImageUrl ? (
+                        <Image src={cardImageUrl} alt={listing.name} fill sizes="56px" className="object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-muted-foreground">
+                          <Car className="size-5" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{listing.name}</p>
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <StatusDot status={listing.status} />
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(listing.createdAt), { addSuffix: true })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {listing.status === "published" ? (
+                      <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={listing.coverImageUrl} fileName={listing.slug} />
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

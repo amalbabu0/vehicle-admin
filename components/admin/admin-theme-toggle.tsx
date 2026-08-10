@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
  */
 export function AdminThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
   return (
-    <Button type="button" variant="outline" size="icon" aria-label="Toggle dark mode" onClick={onToggle}>
+    <Button type="button" variant="outline" size="icon" className="rounded-full" aria-label="Toggle dark mode" onClick={onToggle}>
       {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
   );
