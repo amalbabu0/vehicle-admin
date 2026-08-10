@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Car, ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
+import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { LISTER_NAV_ITEMS } from "@/lib/lister/nav-items";
 import type { ListerTheme } from "@/lib/lister/use-lister-theme";
@@ -42,19 +42,20 @@ export function ListerHeader({
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur-xl sm:gap-3 sm:px-4">
-      <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Car className="size-4.5" />
-        </span>
-        <span className="truncate text-sm font-bold">Kerala Lease Hub</span>
-      </div>
       <h1 className="hidden min-w-0 flex-1 truncate text-base font-semibold lg:block lg:text-lg">{title}</h1>
-      <ListerSearch />
-      <ListerClock />
+
+      <div className="ml-auto flex items-center gap-2 sm:gap-3 lg:ml-0">
+        <ListerSearch />
+        <ListerClock />
+      </div>
 
       <DropdownMenu onOpenChange={(open) => { if (!open) setThemeExpanded(false); }}>
         <DropdownMenuTrigger asChild>
-          <button type="button" className="flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open profile menu">
+          <button
+            type="button"
+            className="order-first flex size-10 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring lg:order-none lg:size-11"
+            aria-label="Open profile menu"
+          >
             <Avatar><AvatarImage src={profile.avatarUrl ?? undefined} alt="Your profile" /><AvatarFallback>{initial}</AvatarFallback></Avatar>
           </button>
         </DropdownMenuTrigger>

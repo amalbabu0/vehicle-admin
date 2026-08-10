@@ -6,7 +6,7 @@ import { Car, PlusCircle, PackageOpen, Users, ImageOff } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth/dal";
 import { getListerStats, getListerRecentVehicles, getPublicUserCount } from "@/lib/lister/dashboard-data";
 import { ListerStatCard } from "@/components/lister/lister-stat-card";
-import { StatusBadge } from "@/components/lister/status-badge";
+import { StatusDot } from "@/components/lister/status-badge";
 import { ShareVehicleMenu } from "@/components/share-vehicle-menu";
 import { Button } from "@/components/ui/button";
 import { buildVehicleShareMessage } from "@/lib/vehicles/share";
@@ -25,10 +25,7 @@ export default async function ListerDashboardPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <p className="text-sm text-muted-foreground">Welcome back,</p>
-        <h2 className="text-xl font-semibold">{profile.full_name ?? "there"}</h2>
-      </div>
+      <h2 className="text-xl font-semibold">{profile.full_name ?? "there"}</h2>
 
       <div className="grid grid-cols-2 gap-3">
         <ListerStatCard label="Total Vehicles" value={stats.published} icon={Car} />
@@ -95,9 +92,9 @@ export default async function ListerDashboardPage() {
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-bold">{vehicle.name}</p>
-                    <div className="mt-1 flex items-center gap-2">
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <StatusDot status={vehicle.status} />
                       <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(vehicle.createdAt), { addSuffix: true })}</span>
-                      <StatusBadge status={vehicle.status} />
                     </div>
                   </div>
 

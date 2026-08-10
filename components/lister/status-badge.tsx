@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Draft",
@@ -24,6 +25,24 @@ export function StatusBadge({ status }: { status: string }) {
     <Badge className={STATUS_CLASSES[status] ?? "bg-muted text-muted-foreground"}>
       {STATUS_LABELS[status] ?? status.replaceAll("_", " ")}
     </Badge>
+  );
+}
+
+// Compact alternative to StatusBadge for tight layouts — published is green,
+// draft is amber, everything else (pending approval, rejected, archived,
+// sold) is red.
+const STATUS_DOT_CLASSES: Record<string, string> = {
+  published: "bg-emerald-500",
+  draft: "bg-amber-500",
+};
+
+export function StatusDot({ status }: { status: string }) {
+  return (
+    <span
+      role="img"
+      aria-label={STATUS_LABELS[status] ?? status.replaceAll("_", " ")}
+      className={cn("inline-block size-2 shrink-0 rounded-full", STATUS_DOT_CLASSES[status] ?? "bg-red-500")}
+    />
   );
 }
 
