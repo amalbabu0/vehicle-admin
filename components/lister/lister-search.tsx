@@ -59,7 +59,7 @@ export function ListerSearch() {
         </span>
         <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium">Ctrl K</kbd>
       </Button>
-      <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(true)} className="size-11 sm:hidden" aria-label="Search">
+      <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(true)} className="size-11 rounded-full bg-muted sm:hidden" aria-label="Search">
         <Search className="size-5" />
       </Button>
 

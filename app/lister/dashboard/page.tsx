@@ -36,7 +36,7 @@ export default async function ListerDashboardPage() {
       </div>
 
       <Link href="/lister/vehicles/add" className="block no-underline">
-        <Button className="min-h-13 w-full gap-2 text-base">
+        <Button variant="outline" className="min-h-13 w-full gap-2 rounded-full border-2 text-base">
           <PlusCircle className="size-5" /> Add Vehicle
         </Button>
       </Link>
@@ -58,7 +58,7 @@ export default async function ListerDashboardPage() {
             </Link>
           </div>
         ) : (
-          <ul className="mt-3 divide-y divide-border">
+          <ul className="mt-3 flex flex-col gap-2">
             {recent.map((vehicle) => {
               const cardImageUrl = vehicle.coverThumbnailUrl ?? vehicle.coverImageUrl;
               const shareUrl = `${env.PUBLIC_SITE_URL}/vehicles/${vehicle.slug}`;
@@ -82,30 +82,28 @@ export default async function ListerDashboardPage() {
               );
 
               return (
-                <li key={vehicle.id} className="flex items-start gap-3 py-3 text-sm">
-                  <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+                <li key={vehicle.id} className="flex items-center gap-3 rounded-xl bg-muted/60 p-2 pr-3 text-sm">
+                  <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted">
                     {cardImageUrl ? (
-                      <Image src={cardImageUrl} alt={vehicle.name} fill sizes="56px" className="object-cover" />
+                      <Image src={cardImageUrl} alt={vehicle.name} fill sizes="80px" className="object-cover" />
                     ) : (
                       <div className="flex h-full items-center justify-center text-muted-foreground">
-                        <ImageOff className="size-4" />
+                        <ImageOff className="size-5" />
                       </div>
                     )}
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="truncate font-medium">{vehicle.name}</p>
+                    <p className="truncate font-bold">{vehicle.name}</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(vehicle.createdAt), { addSuffix: true })}</span>
                       <StatusBadge status={vehicle.status} />
                     </div>
-                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(vehicle.createdAt), { addSuffix: true })}</p>
-
-                    {vehicle.status === "published" ? (
-                      <div className="mt-2">
-                        <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} />
-                      </div>
-                    ) : null}
                   </div>
+
+                  {vehicle.status === "published" ? (
+                    <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} />
+                  ) : null}
                 </li>
               );
             })}

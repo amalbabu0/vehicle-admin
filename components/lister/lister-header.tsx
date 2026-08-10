@@ -3,11 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
+import { Car, ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { LISTER_NAV_ITEMS } from "@/lib/lister/nav-items";
 import type { ListerTheme } from "@/lib/lister/use-lister-theme";
-import { ListerMobileNav } from "@/components/lister/lister-mobile-nav";
 import { ListerSearch } from "@/components/lister/lister-search";
 import { ListerClock } from "@/components/lister/lister-clock";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,8 +42,13 @@ export function ListerHeader({
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur-xl sm:gap-3 sm:px-4">
-      <ListerMobileNav />
-      <h1 className="min-w-0 flex-1 truncate text-base font-semibold lg:text-lg">{title}</h1>
+      <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Car className="size-4.5" />
+        </span>
+        <span className="truncate text-sm font-bold">Kerala Lease Hub</span>
+      </div>
+      <h1 className="hidden min-w-0 flex-1 truncate text-base font-semibold lg:block lg:text-lg">{title}</h1>
       <ListerSearch />
       <ListerClock />
 

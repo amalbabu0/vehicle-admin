@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { ListerSidebar } from "@/components/lister/lister-sidebar";
 import { ListerHeader } from "@/components/lister/lister-header";
 import { ListerFooter } from "@/components/lister/lister-footer";
+import { ListerBottomNav } from "@/components/lister/lister-bottom-nav";
 import { useLocalStorageBoolean } from "@/lib/lister/use-local-storage-boolean";
 import { useListerTheme } from "@/lib/lister/use-lister-theme";
 import { cn } from "@/lib/utils";
@@ -36,11 +37,12 @@ export function ListerShell({
       <ListerSidebar collapsed={collapsed} onToggleCollapsed={() => setCollapsed(!collapsed)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <ListerHeader profile={profile} theme={theme} onThemeChange={setTheme} />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           <div className="p-3 pb-8 sm:p-6">{children}</div>
           <ListerFooter />
         </main>
       </div>
+      <ListerBottomNav />
     </div>
   );
 }

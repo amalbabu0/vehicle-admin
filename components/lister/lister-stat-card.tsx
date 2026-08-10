@@ -13,10 +13,19 @@ export function ListerStatCard({
   tone?: "default" | "warning" | "success" | "destructive";
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-background p-4 shadow-sm shadow-black/5">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-background p-4 shadow-sm shadow-black/5">
+      <Icon
+        className={cn(
+          "pointer-events-none absolute -top-4 -right-4 size-28 opacity-[0.07]",
+          tone === "warning" && "text-amber-600",
+          tone === "success" && "text-emerald-600",
+          tone === "destructive" && "text-destructive",
+          tone === "default" && "text-primary"
+        )}
+      />
       <div
         className={cn(
-          "flex size-9 items-center justify-center rounded-full",
+          "relative flex size-9 items-center justify-center rounded-full",
           tone === "warning" && "bg-amber-500/15 text-amber-600",
           tone === "success" && "bg-emerald-500/15 text-emerald-600",
           tone === "destructive" && "bg-destructive/15 text-destructive",
@@ -25,8 +34,8 @@ export function ListerStatCard({
       >
         <Icon className="size-4.5" />
       </div>
-      <p className="mt-3 text-2xl font-semibold tabular-nums">{value.toLocaleString("en-IN")}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="relative mt-3 text-2xl font-semibold tabular-nums">{value.toLocaleString("en-IN")}</p>
+      <p className="relative text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
