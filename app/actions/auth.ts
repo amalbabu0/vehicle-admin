@@ -276,9 +276,19 @@ export async function forgotPassword(_prevState: ActionState, formData: FormData
   }
 
   const supabase = await createClient();
-  await supabase.auth.resetPasswordForEmail(validated.data.email, {
+  const { error } = await supabase.auth.resetPasswordForEmail(validated.data.email, {
     redirectTo: `${env.SITE_URL}/auth/callback?next=/reset-password`,
   });
+
+  // The user-facing message below is deliberately identical either way, so
+  // a genuine send failure (most likely the auth provider's hourly email
+  // quota being exhausted) is otherwise completely invisible — it looks to
+  // the lister exactly like a successful send that never arrives. Record it
+  // server-side so it's diagnosable without weakening the anti-enumeration
+  // response.
+  if (error) {
+    await logFailedLogin(validated.data.email, ip, "password_reset_send_failed");
+  }
 
   // Always the same message whether or not the email exists — don't leak
   // account existence.
