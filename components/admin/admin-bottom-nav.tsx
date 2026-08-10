@@ -3,19 +3,21 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Car, LayoutDashboard, MoreHorizontal, Users } from "lucide-react";
+import { Car, LayoutDashboard, MoreHorizontal, PlusCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { AdminNavList } from "@/components/admin/admin-nav-list";
 import { cn } from "@/lib/utils";
 
-// Only 3 of the 8 ADMIN_NAV_ITEMS fit a bottom bar without crowding — the
-// rest (Analytics, Activity Logs, Reviews, Deleted Listings, Settings) live
-// behind "More", which reuses the same AdminNavList as the old hamburger
-// drawer did.
+// Only 3 of the 9 ADMIN_NAV_ITEMS fit a bottom bar without crowding — the
+// rest (Users, Analytics, Activity Logs, Reviews, Deleted Listings,
+// Settings) live behind "More", which reuses the same AdminNavList as the
+// old hamburger drawer did. Add Vehicle is pinned here (over Users) to
+// mirror the lister bottom nav, where Add Vehicle is one of its 4
+// always-reachable destinations.
 const PRIMARY_ITEMS = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Listers", href: "/admin/listings", icon: Car },
-  { label: "Users", href: "/admin/users", icon: Users },
+  { label: "Add Vehicle", href: "/admin/vehicles/add", icon: PlusCircle },
 ];
 
 export function AdminBottomNav() {

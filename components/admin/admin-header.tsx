@@ -77,7 +77,7 @@ export function AdminHeader({
             <DropdownMenuLabel>Quick actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/vehicles/add">
+              <Link href="/admin/vehicles/add">
                 <Plus className="size-4" /> Add vehicle
               </Link>
             </DropdownMenuItem>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PlusCircle } from "lucide-react";
 import { getListingsPage, getListerOptions, type ListingsFilter } from "@/lib/admin/listings-data";
 import { buildVehicleShareMessage } from "@/lib/vehicles/share";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +8,7 @@ import { env } from "@/lib/env";
 import { ListingsTabs } from "@/components/admin/listings-tabs";
 import { ListingsFilters } from "@/components/admin/listings-filters";
 import { ListingsTable } from "@/components/admin/listings-table";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Listers" };
 
@@ -69,9 +71,16 @@ export default async function AdminListingsPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Listers</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Manage all vehicle listings from one module.</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Listers</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Manage all vehicle listings from one module.</p>
+        </div>
+        <Link href="/admin/vehicles/add" className="no-underline">
+          <Button className="gap-2">
+            <PlusCircle className="size-4" /> Add Vehicle
+          </Button>
+        </Link>
       </div>
 
       <ListingsTabs />
