@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { MapPin, ImageOff } from "lucide-react";
-import { StatusBadge, FeaturedBadge } from "@/components/lister/status-badge";
+import { StatusBadge, FeaturedBadge, BookedBadge } from "@/components/lister/status-badge";
 import { VehicleCardMenu } from "@/components/lister/vehicle-card-menu";
 import { ShareVehicleMenu } from "@/components/share-vehicle-menu";
 import type { ListerVehicleRow } from "@/lib/lister/vehicles-data";
@@ -27,6 +27,7 @@ export function VehicleCard({
   view?: "grid" | "list";
 }) {
   const isPublished = vehicle.status === "published";
+  const isBooked = vehicle.bookingStatus === "booked";
   const cardImageUrl = vehicle.coverThumbnailUrl ?? vehicle.coverImageUrl;
   const altText = [vehicle.name, vehicle.registrationYear, vehicle.districtName ? `in ${vehicle.districtName}` : null].filter(Boolean).join(" ");
   const subtitle = vehicle.registrationYear ? String(vehicle.registrationYear) : "";
@@ -74,6 +75,7 @@ export function VehicleCard({
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
                 <StatusBadge status={vehicle.status} />
+                {isBooked ? <BookedBadge /> : null}
                 {vehicle.featured ? <FeaturedBadge /> : null}
               </div>
             </div>
@@ -91,7 +93,7 @@ export function VehicleCard({
 
           <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
             <div>{shareRow}</div>
-            <VehicleCardMenu id={vehicle.id} status={vehicle.status} shareUrl={shareUrl} showViewDetails={isPublished} />
+            <VehicleCardMenu id={vehicle.id} status={vehicle.status} bookingStatus={vehicle.bookingStatus} shareUrl={shareUrl} showViewDetails={isPublished} />
           </div>
         </div>
       </div>
@@ -107,9 +109,10 @@ export function VehicleCard({
         <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2">
           <div className="flex flex-col items-start gap-1.5">
             <StatusBadge status={vehicle.status} />
+            {isBooked ? <BookedBadge /> : null}
             {vehicle.featured ? <FeaturedBadge /> : null}
           </div>
-          <VehicleCardMenu id={vehicle.id} status={vehicle.status} shareUrl={shareUrl} showViewDetails={isPublished} />
+          <VehicleCardMenu id={vehicle.id} status={vehicle.status} bookingStatus={vehicle.bookingStatus} shareUrl={shareUrl} showViewDetails={isPublished} />
         </div>
       </div>
 

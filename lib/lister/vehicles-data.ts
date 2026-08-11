@@ -5,6 +5,7 @@ import { getLocationLookup } from "@/lib/vehicles/location-lookup";
 import type { Database } from "@/lib/supabase/database.types";
 
 type VehicleStatus = Database["public"]["Enums"]["vehicle_status"];
+type BookingStatus = Database["public"]["Enums"]["vehicle_booking_status"];
 
 export type ListerVehicleRow = {
   id: string;
@@ -16,6 +17,7 @@ export type ListerVehicleRow = {
   leaseAmount: number;
   leasePeriod: string;
   status: VehicleStatus;
+  bookingStatus: BookingStatus;
   featured: boolean;
   rejectedReason: string | null;
   districtName: string | null;
@@ -36,7 +38,7 @@ export type ListerVehicleRow = {
 };
 
 const VEHICLE_SELECT = `
-  id, name, slug, model, registration_year, lease_amount, lease_period, status, rejected_reason,
+  id, name, slug, model, registration_year, lease_amount, lease_period, status, booking_status, rejected_reason,
   location_id, created_at, fuel_type, transmission, km_driven, ownership_count, condition,
   direct_owner, service_charge_percent, contact_phone,
   brands ( name ),
@@ -52,6 +54,7 @@ type VehicleRow = {
   lease_amount: number;
   lease_period: string;
   status: VehicleStatus;
+  booking_status: BookingStatus;
   rejected_reason: string | null;
   location_id: string | null;
   created_at: string;
@@ -107,6 +110,7 @@ export async function getListerVehicles(listerId: string): Promise<ListerVehicle
       leaseAmount: row.lease_amount,
       leasePeriod: row.lease_period,
       status: row.status,
+      bookingStatus: row.booking_status,
       featured: featuredIds.has(row.id),
       rejectedReason: row.rejected_reason,
       districtName: row.location_id ? (locations.get(row.location_id)?.districtName ?? null) : null,

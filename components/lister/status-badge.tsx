@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star, Ban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +50,14 @@ export function FeaturedBadge() {
   return (
     <Badge className="gap-1 bg-blue-500/15 text-blue-700 dark:text-blue-400">
       <Star className="size-3 fill-current" /> Featured
+    </Badge>
+  );
+}
+
+export function BookedBadge() {
+  return (
+    <Badge className="gap-1 bg-red-500/15 text-red-700 dark:text-red-400">
+      <Ban className="size-3" /> Booked
     </Badge>
   );
 }

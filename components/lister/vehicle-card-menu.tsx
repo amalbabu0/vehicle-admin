@@ -24,18 +24,22 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ListerVehicleActions } from "@/components/lister/lister-vehicle-actions";
+import { BookingStatusMenuItem } from "@/components/lister/booking-status-menu-item";
 import type { Database } from "@/lib/supabase/database.types";
 
 type VehicleStatus = Database["public"]["Enums"]["vehicle_status"];
+type BookingStatus = Database["public"]["Enums"]["vehicle_booking_status"];
 
 export function VehicleCardMenu({
   id,
   status,
+  bookingStatus,
   shareUrl,
   showViewDetails,
 }: {
   id: string;
   status: VehicleStatus;
+  bookingStatus: BookingStatus;
   shareUrl: string;
   showViewDetails: boolean;
 }) {
@@ -84,6 +88,12 @@ export function VehicleCardMenu({
             </Link>
           </DropdownMenuItem>
           <ListerVehicleActions id={id} status={status} asMenuItem />
+          {/* Booking is only meaningful for a live listing — but still
+              offered when already booked so a lister can always reverse it,
+              even if the listing's lifecycle status later changed. */}
+          {status === "published" || bookingStatus === "booked" ? (
+            <BookingStatusMenuItem id={id} bookingStatus={bookingStatus} />
+          ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
             <Trash2 className="size-4" /> Delete
