@@ -46,6 +46,8 @@ export function VehicleCardMenu({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isBookingPending, startBookingTransition] = useTransition();
+  const [confirmBooking, setConfirmBooking] = useState(false);
 
   const deleteVehicle = () => {
     startTransition(async () => {
@@ -57,6 +59,26 @@ export function VehicleCardMenu({
       }
       toast.success("Listing moved to Deleted Listings.");
       setConfirmDelete(false);
+      router.refresh();
+    });
+  };
+
+  const nextBookingStatus: BookingStatus = bookingStatus === "booked" ? "available" : "booked";
+
+  const updateBookingStatus = () => {
+    startBookingTransition(async () => {
+      const response = await fetch(`/api/vehicles/${id}/booking-status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingStatus: nextBookingStatus }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        toast.error(payload.message || "Unable to update the vehicle right now. Please try again.");
+        return;
+      }
+      toast.success(payload.message);
+      setConfirmBooking(false);
       router.refresh();
     });
   };
@@ -92,7 +114,7 @@ export function VehicleCardMenu({
               offered when already booked so a lister can always reverse it,
               even if the listing's lifecycle status later changed. */}
           {status === "published" || bookingStatus === "booked" ? (
-            <BookingStatusMenuItem id={id} bookingStatus={bookingStatus} />
+            <BookingStatusMenuItem bookingStatus={bookingStatus} onSelect={() => setConfirmBooking(true)} />
           ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
@@ -111,6 +133,27 @@ export function VehicleCardMenu({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={deleteVehicle} disabled={isPending}>
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Sibling of DropdownMenu, not nested inside it — same reasoning as
+          the Delete dialog above. See booking-status-menu-item.tsx. */}
+      <AlertDialog open={confirmBooking} onOpenChange={(open) => { if (!isBookingPending) setConfirmBooking(open); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{bookingStatus === "booked" ? "Mark this vehicle as available?" : "Mark this vehicle as booked?"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {bookingStatus === "booked"
+                ? "Users will be able to call, WhatsApp, and favorite this vehicle again."
+                : "Once marked as booked, users will see that this vehicle is already booked and will not be able to call, WhatsApp, or favorite it."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBookingPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={updateBookingStatus} disabled={isBookingPending}>
+              {isBookingPending ? "Updating…" : bookingStatus === "booked" ? "Mark as Available" : "Mark as Booked"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
