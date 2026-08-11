@@ -46,6 +46,7 @@ export type ListerRecentVehicle = {
   name: string;
   slug: string;
   brandName: string | null;
+  model: string | null;
   status: string;
   createdAt: string;
   leaseAmount: number;
@@ -54,18 +55,37 @@ export type ListerRecentVehicle = {
   districtName: string | null;
   coverImageUrl: string | null;
   coverThumbnailUrl: string | null;
+  // Same reasoning as ListerVehicleRow: the share message needs the whole
+  // listing, not just what the card renders.
+  fuelType: string | null;
+  transmission: string | null;
+  kmDriven: number | null;
+  ownershipCount: number | null;
+  condition: string | null;
+  directOwner: boolean;
+  serviceChargePercent: number | null;
+  contactPhone: string;
 };
 
 type RecentVehicleRow = {
   id: string;
   name: string;
   slug: string;
+  model: string | null;
   status: string;
   created_at: string;
   lease_amount: number;
   lease_period: string;
   registration_year: number | null;
   location_id: string | null;
+  fuel_type: string | null;
+  transmission: string | null;
+  km_driven: number | null;
+  ownership_count: number | null;
+  condition: string | null;
+  direct_owner: boolean;
+  service_charge_percent: number | null;
+  contact_phone: string;
   brands: { name: string } | null;
   vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
@@ -76,7 +96,9 @@ export async function getListerRecentVehicles(listerId: string, limit = 5): Prom
     supabase
       .from("vehicles")
       .select(
-        `id, name, slug, status, created_at, lease_amount, lease_period, registration_year, location_id,
+        `id, name, slug, model, status, created_at, lease_amount, lease_period, registration_year, location_id,
+         fuel_type, transmission, km_driven, ownership_count, condition,
+         direct_owner, service_charge_percent, contact_phone,
          brands ( name ),
          vehicle_images ( url, thumbnail_url, is_cover, sort_order )`
       )
@@ -96,6 +118,7 @@ export async function getListerRecentVehicles(listerId: string, limit = 5): Prom
       name: row.name,
       slug: row.slug,
       brandName: row.brands?.name ?? null,
+      model: row.model,
       status: row.status,
       createdAt: row.created_at,
       leaseAmount: row.lease_amount,
@@ -104,6 +127,14 @@ export async function getListerRecentVehicles(listerId: string, limit = 5): Prom
       districtName: row.location_id ? (locations.get(row.location_id)?.districtName ?? null) : null,
       coverImageUrl: cover?.url ?? null,
       coverThumbnailUrl: cover?.thumbnail_url ?? null,
+      fuelType: row.fuel_type,
+      transmission: row.transmission,
+      kmDriven: row.km_driven,
+      ownershipCount: row.ownership_count,
+      condition: row.condition,
+      directOwner: row.direct_owner,
+      serviceChargePercent: row.service_charge_percent,
+      contactPhone: row.contact_phone,
     };
   });
 }

@@ -11,6 +11,7 @@ export type ListerVehicleRow = {
   name: string;
   slug: string;
   brandName: string | null;
+  model: string | null;
   registrationYear: number | null;
   leaseAmount: number;
   leasePeriod: string;
@@ -21,11 +22,23 @@ export type ListerVehicleRow = {
   coverImageUrl: string | null;
   coverThumbnailUrl: string | null;
   createdAt: string;
+  // Carried so the WhatsApp share message can include everything the
+  // listing actually recorded — see lib/vehicles/share.ts. Adding them to
+  // the existing select costs no extra round trip.
+  fuelType: string | null;
+  transmission: string | null;
+  kmDriven: number | null;
+  ownershipCount: number | null;
+  condition: string | null;
+  directOwner: boolean;
+  serviceChargePercent: number | null;
+  contactPhone: string;
 };
 
 const VEHICLE_SELECT = `
-  id, name, slug, registration_year, lease_amount, lease_period, status, rejected_reason,
-  location_id, created_at,
+  id, name, slug, model, registration_year, lease_amount, lease_period, status, rejected_reason,
+  location_id, created_at, fuel_type, transmission, km_driven, ownership_count, condition,
+  direct_owner, service_charge_percent, contact_phone,
   brands ( name ),
   vehicle_images ( url, thumbnail_url, is_cover, sort_order )
 `;
@@ -34,6 +47,7 @@ type VehicleRow = {
   id: string;
   name: string;
   slug: string;
+  model: string | null;
   registration_year: number | null;
   lease_amount: number;
   lease_period: string;
@@ -41,6 +55,14 @@ type VehicleRow = {
   rejected_reason: string | null;
   location_id: string | null;
   created_at: string;
+  fuel_type: string | null;
+  transmission: string | null;
+  km_driven: number | null;
+  ownership_count: number | null;
+  condition: string | null;
+  direct_owner: boolean;
+  service_charge_percent: number | null;
+  contact_phone: string;
   brands: { name: string } | null;
   vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
@@ -80,6 +102,7 @@ export async function getListerVehicles(listerId: string): Promise<ListerVehicle
       name: row.name,
       slug: row.slug,
       brandName: row.brands?.name ?? null,
+      model: row.model,
       registrationYear: row.registration_year,
       leaseAmount: row.lease_amount,
       leasePeriod: row.lease_period,
@@ -90,6 +113,14 @@ export async function getListerVehicles(listerId: string): Promise<ListerVehicle
       coverImageUrl: cover?.url ?? null,
       coverThumbnailUrl: cover?.thumbnail_url ?? null,
       createdAt: row.created_at,
+      fuelType: row.fuel_type,
+      transmission: row.transmission,
+      kmDriven: row.km_driven,
+      ownershipCount: row.ownership_count,
+      condition: row.condition,
+      directOwner: row.direct_owner,
+      serviceChargePercent: row.service_charge_percent,
+      contactPhone: row.contact_phone,
     };
   });
 }
