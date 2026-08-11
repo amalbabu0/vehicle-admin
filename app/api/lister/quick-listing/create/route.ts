@@ -55,6 +55,11 @@ export async function POST(request: Request) {
       contact_phone: data.contactPhone,
       service_charge_percent: data.serviceChargePercent ?? null,
       location_id: locationId,
+      // Nullable, but leaving it null makes the listing invisible to the
+      // public site's type filter and absent from its homepage category
+      // counts — so the extractor works this out from the make/model even
+      // though messages never state it. See VEHICLE_CATEGORIES.
+      category_id: data.categoryId || null,
       description: data.description || null,
       fuel_type: data.fuelType || null,
       transmission: data.transmission || null,

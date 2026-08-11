@@ -56,6 +56,7 @@ function toWizardState(extraction: QuickListingExtraction): WizardFormState {
     leasePeriod: fields.leasePeriod ?? "",
     serviceChargePercent: fields.serviceChargePercent != null ? String(fields.serviceChargePercent) : "",
     locationId: fields.locationId ?? "",
+    categoryId: fields.categoryId ?? "",
     imageUrls,
   };
 }

@@ -35,6 +35,7 @@ export type QuickListingExtraction = {
     contactPhone?: string | null;
     serviceChargePercent?: number | null;
     locationId?: string | null;
+    categoryId?: string | null;
     description?: string | null;
     fuelType?: string | null;
     transmission?: string | null;

@@ -24,6 +24,10 @@ export type WizardFormState = {
   leasePeriod: string;
   serviceChargePercent: string;
   locationId: string;
+  /** Only rendered by Quick Listing's review screen — the Detailed wizard has
+   * no category step and simply carries the empty default, so its behaviour
+   * is unchanged. */
+  categoryId: string;
   imageUrls: WizardImage[];
 };
 
@@ -43,6 +47,7 @@ export const EMPTY_WIZARD_STATE: WizardFormState = {
   leasePeriod: "",
   serviceChargePercent: "",
   locationId: "",
+  categoryId: "",
   imageUrls: [],
 };
 

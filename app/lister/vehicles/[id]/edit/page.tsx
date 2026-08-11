@@ -33,6 +33,11 @@ export default async function EditVehiclePage({ params }: { params: Promise<{ id
     leasePeriod: vehicle.leasePeriod,
     serviceChargePercent: vehicle.serviceChargePercent,
     locationId: vehicle.locationId,
+    // The edit wizard has no category step and PUT /api/vehicles/[id] never
+    // writes category_id, so an empty value here cannot clear an existing
+    // category. If that PUT ever starts handling categories, this must load
+    // the real one first — otherwise editing would silently wipe it.
+    categoryId: "",
     imageUrls: vehicle.imageUrls,
   };
 

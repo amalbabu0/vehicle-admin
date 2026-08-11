@@ -6,6 +6,12 @@ export const TRANSMISSIONS = [
   "Manual", "Automatic (AT)", "AMT", "CVT", "DCT", "iMT", "Tiptronic", "Sequential", "Semi-Automatic",
 ] as const;
 
+/** Must stay in step with the `categories` table (seeded in migration 0011)
+ * by name — Quick Listing's extractor picks one of these and the server
+ * resolves it to a real category_id. Kept here rather than fetched so the
+ * extraction prompt and this validator are generated from one list. */
+export const VEHICLE_CATEGORIES = ["Cars", "SUVs", "Bikes", "Scooters", "EVs", "Commercial Vehicles"] as const;
+
 // Accepts either shape: a plain URL string (legacy — kept so any caller
 // that isn't updated to the multi-size pipeline still works, per "existing
 // uploads should continue to work") or the {url, mediumUrl, thumbnailUrl}
@@ -77,6 +83,7 @@ export const quickVehicleCreateSchema = z.object({
 
   year: blankable(z.string().regex(/^[0-9]{4}$/, "Enter a valid 4-digit year.")),
   locationId: blankable(z.string()),
+  categoryId: blankable(z.string()),
   fuelType: blankable(z.enum(FUEL_TYPES)),
   transmission: blankable(z.enum(TRANSMISSIONS)),
   description: blankable(z.string()),

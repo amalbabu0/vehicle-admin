@@ -88,19 +88,34 @@ export async function POST(request: Request) {
     );
   }
 
-  const { locationName, ...fields } = extraction.fields;
+  const { locationName, categoryName, ...fields } = extraction.fields;
 
   // Resolve the place NAME the model returned against the real locations
   // table, falling back from town to district for the "Mannar, Alappuzha"
   // shape these messages use. No match means the lister picks it — never a
   // guess, and never a model-supplied id (see lib/ai/extract-vehicle.ts).
   let locationId: string | null = null;
-  if (locationName) {
+  let categoryId: string | null = null;
+  if (locationName || categoryName) {
     const supabase = await createClient();
-    locationId = await resolveLocationName(supabase, locationName).catch(() => null);
+    // The extractor picks a category NAME from a closed list (see
+    // VEHICLE_CATEGORIES); this maps it to the real row. Without a
+    // category the listing is invisible to the public site's type filter
+    // and its homepage category counts.
+    [locationId, categoryId] = await Promise.all([
+      locationName ? resolveLocationName(supabase, locationName).catch(() => null) : Promise.resolve(null),
+      categoryName
+        ? supabase
+            .from("categories")
+            .select("id")
+            .eq("name", categoryName)
+            .maybeSingle()
+            .then(({ data }) => data?.id ?? null, () => null)
+        : Promise.resolve(null),
+    ]);
   }
 
-  const resolved = { ...fields, locationId };
+  const resolved = { ...fields, locationId, categoryId };
   const unresolved = REQUIRED_FOR_SUBMIT.filter(
     (field) => !resolved[field as keyof typeof resolved]
   );
@@ -109,6 +124,9 @@ export async function POST(request: Request) {
 }
 
 export type QuickListingExtractionResponse = {
-  fields: Omit<ExtractedVehicle, "locationName"> & { locationId: string | null };
+  fields: Omit<ExtractedVehicle, "locationName" | "categoryName"> & {
+    locationId: string | null;
+    categoryId: string | null;
+  };
   unresolved: string[];
 };

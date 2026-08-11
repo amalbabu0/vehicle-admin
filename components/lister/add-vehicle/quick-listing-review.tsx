@@ -11,6 +11,8 @@ import { BasicInfoStep } from "@/components/lister/add-vehicle/basic-info-step";
 import { SpecsStep } from "@/components/lister/add-vehicle/specs-step";
 import { PricingStep } from "@/components/lister/add-vehicle/pricing-step";
 import { LocationStep } from "@/components/lister/add-vehicle/location-step";
+import { Combobox } from "@/components/combobox";
+import { Field } from "@/components/lister/add-vehicle/field";
 import { ImagesStep } from "@/components/lister/add-vehicle/images-step";
 import { SuccessStep } from "@/components/lister/add-vehicle/success-step";
 import type { WizardFormState, FieldErrors } from "@/components/lister/add-vehicle/types";
@@ -40,6 +42,7 @@ function toPayload(formState: WizardFormState) {
     contactPhone: formState.contactPhone,
     serviceChargePercent: formState.serviceChargePercent,
     locationId: formState.locationId,
+    categoryId: formState.categoryId,
     description: formState.description,
     fuelType: formState.fuelType,
     transmission: formState.transmission,
@@ -75,6 +78,7 @@ export function QuickListingReview({
   const [submitted, setSubmitted] = useState(false);
   const [brandOptions, setBrandOptions] = useState<ComboboxOption[]>([]);
   const [locationOptions, setLocationOptions] = useState<ComboboxOption[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<ComboboxOption[]>([]);
 
   useEffect(() => {
     fetch("/api/brands")
@@ -87,6 +91,12 @@ export function QuickListingReview({
         setLocationOptions((payload.options ?? []).map((option: { id: string; label: string }) => ({ value: option.id, label: option.label })))
       )
       .catch(() => setLocationOptions([]));
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((payload) =>
+        setCategoryOptions((payload.options ?? []).map((option: { id: string; label: string }) => ({ value: option.id, label: option.label })))
+      )
+      .catch(() => setCategoryOptions([]));
   }, []);
 
   const onChange = <K extends keyof WizardFormState>(field: K, value: WizardFormState[K]) => {
@@ -158,6 +168,20 @@ export function QuickListingReview({
 
       <Section title="Basic info" hint="Brand, model and contact number are required.">
         <BasicInfoStep formState={formState} errors={errors} onChange={onChange} brandOptions={brandOptions} />
+      </Section>
+
+      <Section title="Vehicle type" hint="Drives the type filter on the public site — worth getting right.">
+        <Field htmlFor="categoryId" label="Category" error={errors.categoryId}>
+          <Combobox
+            value={formState.categoryId}
+            onChange={(value) => onChange("categoryId", value)}
+            options={categoryOptions}
+            placeholder="Select vehicle type"
+            searchPlaceholder="Search types…"
+            emptyText="No matching type."
+            triggerClassName="h-12"
+          />
+        </Field>
       </Section>
 
       <Section title="Specifications" hint="Optional — leave blank if the message didn't say.">
