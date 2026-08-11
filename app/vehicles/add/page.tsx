@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Combobox, type ComboboxOption } from "@/components/combobox";
 import { FUEL_TYPES, TRANSMISSIONS } from "@/lib/validators/vehicle";
-import indiaCarBrands from "@/lib/data/india-car-brands.json";
+import indiaVehicleBrands from "@/lib/data/india-vehicle-brands.json";
 
 const emptyFormState = {
   brand: "",
@@ -53,7 +53,7 @@ export default function AddVehiclePage() {
   }, []);
 
   const modelOptions = useMemo<ComboboxOption[]>(() => {
-    const brand = indiaCarBrands.brands.find((b) => b.name.toLowerCase() === formState.brand.trim().toLowerCase());
+    const brand = indiaVehicleBrands.brands.find((b) => b.name.toLowerCase() === formState.brand.trim().toLowerCase());
     return (brand?.models ?? []).map((model) => ({ value: model, label: model }));
   }, [formState.brand]);
 

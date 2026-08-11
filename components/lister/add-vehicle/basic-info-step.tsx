@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Combobox, type ComboboxOption } from "@/components/combobox";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/lister/add-vehicle/field";
-import indiaCarBrands from "@/lib/data/india-car-brands.json";
+import indiaVehicleBrands from "@/lib/data/india-vehicle-brands.json";
 import type { WizardFormState, FieldErrors } from "@/components/lister/add-vehicle/types";
 
 export function BasicInfoStep({
@@ -19,7 +19,7 @@ export function BasicInfoStep({
   brandOptions: ComboboxOption[];
 }) {
   const modelOptions = useMemo<ComboboxOption[]>(() => {
-    const brand = indiaCarBrands.brands.find((b) => b.name.toLowerCase() === formState.brand.trim().toLowerCase());
+    const brand = indiaVehicleBrands.brands.find((b) => b.name.toLowerCase() === formState.brand.trim().toLowerCase());
     return (brand?.models ?? []).map((model) => ({ value: model, label: model }));
   }, [formState.brand]);
 

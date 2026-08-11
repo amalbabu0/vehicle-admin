@@ -80,7 +80,11 @@ const EXTRACT_TOOL = {
       type: "object",
       properties: {
         brand: { type: ["string", "null"], description: 'Manufacturer, e.g. "Maruti Suzuki", "Honda".' },
-        model: { type: ["string", "null"], description: 'Model name only, without the brand, e.g. "Swift", "City".' },
+        model: {
+          type: ["string", "null"],
+          description:
+            'Full model name without the brand, keeping every variant/trim word exactly as written — e.g. "Duke 390 Adventure", "Pulsar NS200", "Apache RTR 160 4V", "Swift VXI". Never shorten "Duke 390 Adventure" to "Duke 390".',
+        },
         year: { type: ["string", "null"], description: "Registration year as 4 digits." },
         leaseAmount: { type: ["string", "null"], description: "Lease amount as digits only. No currency symbol, commas, or words." },
         leasePeriod: { type: ["string", "null"], description: 'Lease duration in months, e.g. "6 months", "3-6 months", "12 months".' },
@@ -110,6 +114,7 @@ Rules:
 - fuelType must be exactly one of: ${FUEL_TYPES.join(", ")}.
 - transmission must be exactly one of: ${TRANSMISSIONS.join(", ")}.
 - If the message's wording doesn't clearly map to one of those exact values, set the field to null.
+- model: keep the complete model name, including trim/variant words (Adventure, ADV, Pro, Plus, 4V, VXI, ZX, S, R). "ADVENTURE DUKE 390" is model "Duke 390 Adventure", never just "Duke 390". Dropping a variant word makes it a different vehicle.
 - leaseAmount: digits only. "₹25,000" becomes "25000". Amounts written as "25k" become "25000". If the message gives a sale price rather than a lease/rent amount, set it to null.
 - leasePeriod is always expressed in months.
 - locationName: a place name only, exactly as written in the message. Never substitute a nearby or larger city.
