@@ -48,13 +48,39 @@ function AuthErrorBanner() {
  * plain string via FormData exactly like a normal text input would.
  * Uncontrolled by design — box values live on the DOM nodes themselves so
  * typing/pasting doesn't round-trip through React state on every keystroke. */
-function OtpBoxes({ length, name, hasError, disabled }: { length: number; name: string; hasError?: boolean; disabled?: boolean }) {
+function OtpBoxes({
+  length,
+  name,
+  hasError,
+  disabled,
+  onComplete,
+}: {
+  length: number;
+  name: string;
+  hasError?: boolean;
+  disabled?: boolean;
+  /** Fires once, the moment every box holds a digit — lets the caller
+   * auto-submit instead of waiting for the Verify button. Guarded by
+   * firedRef rather than relying on `disabled` flipping in time, since
+   * that state update lands a render after this fires. */
+  onComplete?: () => void;
+}) {
   const boxesRef = useRef<(HTMLInputElement | null)[]>([]);
   const hiddenRef = useRef<HTMLInputElement>(null);
+  const firedRef = useRef(false);
 
   const syncHidden = () => {
     if (hiddenRef.current) {
       hiddenRef.current.value = boxesRef.current.map((el) => el?.value ?? "").join("");
+    }
+  };
+
+  const checkComplete = () => {
+    if (firedRef.current) return;
+    const filled = boxesRef.current.length === length && boxesRef.current.every((el) => el?.value);
+    if (filled) {
+      firedRef.current = true;
+      onComplete?.();
     }
   };
 
@@ -74,6 +100,7 @@ function OtpBoxes({ length, name, hasError, disabled }: { length: number; name: 
     }
     syncHidden();
     focusBox(i);
+    checkComplete();
   };
 
   return (
@@ -102,6 +129,7 @@ function OtpBoxes({ length, name, hasError, disabled }: { length: number; name: 
             e.target.value = digits;
             syncHidden();
             if (digits) focusBox(index + 1);
+            checkComplete();
           }}
           onKeyDown={(e) => {
             if (e.key === "Backspace") {
@@ -146,6 +174,7 @@ export default function LoginPage() {
   const [resendSeconds, setResendSeconds] = useState(59);
   const [otpResetKey, setOtpResetKey] = useState(0);
   const [prevOtpState, setPrevOtpState] = useState(otpState);
+  const otpFormRef = useRef<HTMLFormElement>(null);
 
   // Same reasoning as forgot-password/page.tsx: clear the (now-consumed)
   // token during render rather than an effect; the widget reset itself is
@@ -200,7 +229,7 @@ export default function LoginPage() {
       </Suspense>
 
       {state?.otpRequired ? (
-        <form action={otpFormAction} className="mt-6 space-y-4">
+        <form ref={otpFormRef} action={otpFormAction} className="mt-6 space-y-4">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">We sent a sign-in code to</p>
             <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-3">
@@ -214,7 +243,14 @@ export default function LoginPage() {
 
           <div className="space-y-2">
             <Label className="text-xs font-medium tracking-wider uppercase">Sign-in code</Label>
-            <OtpBoxes length={OTP_LENGTH} name="otp" key={otpResetKey} hasError={!!otpState?.errors?.otp} disabled={otpPending} />
+            <OtpBoxes
+              length={OTP_LENGTH}
+              name="otp"
+              key={otpResetKey}
+              hasError={!!otpState?.errors?.otp}
+              disabled={otpPending}
+              onComplete={() => otpFormRef.current?.requestSubmit()}
+            />
             {otpState?.errors?.otp && <p className="text-sm text-destructive">{otpState.errors.otp[0]}</p>}
           </div>
 
