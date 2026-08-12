@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ImageOff, RotateCcw, Trash2 } from "lucide-react";
 import { StatusBadge } from "@/components/lister/status-badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +19,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+/** Placeholder for the card above — same aspect-4/3 image, the same 4-5 text
+ * lines (5 when `showListerLine` mirrors the admin variant's extra "Lister:
+ * …" row), and the same button row (2 buttons only when `showDeleteButton`
+ * mirrors `canPermanentlyDelete`, admin-only). */
+export function DeletedListingCardSkeleton({ showListerLine = false, showDeleteButton = false }: { showListerLine?: boolean; showDeleteButton?: boolean }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
+      <Skeleton className="aspect-4/3 w-full rounded-none" />
+      <div className="space-y-2 p-3">
+        <div className="flex items-start justify-between gap-2">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-5 w-16 shrink-0 rounded-full" />
+        </div>
+        {showListerLine ? <Skeleton className="h-3 w-1/2" /> : null}
+        <Skeleton className="h-3 w-3/5" />
+        <Skeleton className="h-3 w-2/5" />
+        <Skeleton className="h-3 w-1/3" />
+        <Skeleton className="h-3 w-1/4" />
+        <div className="flex items-center gap-2 pt-1.5">
+          <Skeleton className="h-8 w-24 rounded-md" />
+          {showDeleteButton ? <Skeleton className="h-8 w-36 rounded-md" /> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function DeletedListingCard({
   id,

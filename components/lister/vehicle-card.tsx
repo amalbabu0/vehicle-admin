@@ -5,7 +5,55 @@ import { MapPin, ImageOff } from "lucide-react";
 import { StatusBadge, FeaturedBadge, BookedBadge } from "@/components/lister/status-badge";
 import { VehicleCardMenu } from "@/components/lister/vehicle-card-menu";
 import { ShareVehicleMenu } from "@/components/share-vehicle-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ListerVehicleRow } from "@/lib/lister/vehicles-data";
+
+/** Placeholder for the card below — same image size (size-28/36 for list,
+ * aspect-4/3 for grid), same name/subtitle/badge/price/menu slots. */
+export function VehicleCardSkeleton({ view = "grid" }: { view?: "grid" | "list" }) {
+  if (view === "list") {
+    return (
+      <div className="flex gap-3 rounded-xl border border-border bg-card p-2.5 shadow-sm shadow-black/5">
+        <Skeleton className="size-28 shrink-0 rounded-lg sm:size-36" />
+        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
+          <div className="space-y-1.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-10" />
+              </div>
+              <Skeleton className="h-5 w-16 shrink-0 rounded-full" />
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
+            <Skeleton className="h-8 w-8 rounded-md" />
+            <Skeleton className="size-9 rounded-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm shadow-black/5">
+      <Skeleton className="aspect-4/3 w-full rounded-none" />
+      <div className="flex flex-col gap-3 p-3.5">
+        <div className="min-w-0 space-y-1.5">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-3 w-10" />
+        </div>
+        <div className="flex items-end justify-between gap-2">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /** leasePeriod is free text the lister typed (e.g. "3-6", "per month", "1 year") — append
  * "months" only when they didn't already give it a unit, so "6 months" doesn't become
