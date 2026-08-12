@@ -1,18 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, ChevronDown, LogOut, Plus, ClipboardCheck, ShieldAlert } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Plus, ClipboardCheck, ShieldAlert } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { ADMIN_NAV_ITEMS } from "@/lib/admin/nav-items";
 import type { LoginAttackAlert } from "@/lib/admin/security-data";
 import { AdminSearch } from "@/components/admin/admin-search";
 import { AdminClock } from "@/components/admin/admin-clock";
 import { AdminThemeToggle } from "@/components/admin/admin-theme-toggle";
+import { AdminNavList } from "@/components/admin/admin-nav-list";
+import { BrandMark } from "@/components/brand-mark";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,9 +47,29 @@ export function AdminHeader({
 }) {
   const current = useBreadcrumbs();
   const notificationCount = pendingApprovalCount + securityAlerts.length;
+  const [navOpen, setNavOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
+      {/* The sidebar is the only navigation surface now (no bottom nav) —
+          on mobile, where the sidebar is hidden (see AdminSidebar's
+          `hidden lg:flex`), this is how the same nav becomes reachable. */}
+      <Sheet open={navOpen} onOpenChange={setNavOpen}>
+        <SheetTrigger asChild>
+          <Button type="button" variant="ghost" size="icon" className="order-first lg:hidden" aria-label="Open navigation menu">
+            <Menu className="size-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-72 p-0">
+          <SheetTitle className="flex items-center gap-2 border-b border-border px-4 py-4">
+            <BrandMark className="size-10" /> Kerala Lease Hub
+          </SheetTitle>
+          <div className="p-3">
+            <AdminNavList onNavigate={() => setNavOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
+
       <Breadcrumb className="hidden lg:block">
         <BreadcrumbList>
           <BreadcrumbItem>
