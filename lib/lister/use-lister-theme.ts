@@ -10,8 +10,13 @@ const CHANGE_EVENT = "lister-theme-change";
 function readTheme(): ListerTheme {
   const saved = localStorage.getItem(KEY);
   if (saved === "light" || saved === "dark" || saved === "system") return saved;
-  // Preserve the previous lister-only preference during this small migration.
-  return localStorage.getItem("lister:dark-mode") === "1" ? "dark" : "light";
+  // Preserve the previous lister-only preference during this small migration
+  // — an explicit past choice (either value) still wins over the new default.
+  const legacy = localStorage.getItem("lister:dark-mode");
+  if (legacy === "1") return "dark";
+  if (legacy === "0") return "light";
+  // No preference recorded anywhere — a brand-new lister defaults to dark.
+  return "dark";
 }
 
 export function useListerTheme() {
@@ -31,7 +36,9 @@ export function useListerTheme() {
     };
   }, []);
 
-  const theme = useSyncExternalStore(subscribe, readTheme, () => "light" as ListerTheme);
+  // Server snapshot matches the new default so first paint (before
+  // hydration reads localStorage) doesn't flash light-then-dark.
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "dark" as ListerTheme);
   const setTheme = useCallback((next: ListerTheme) => {
     localStorage.setItem(KEY, next);
     window.dispatchEvent(new CustomEvent(CHANGE_EVENT, { detail: KEY }));
