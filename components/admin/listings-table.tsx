@@ -155,12 +155,12 @@ export function ListingsTable({ initialListings }: { initialListings: Row[] }) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
+                      <div className="relative size-18 shrink-0 overflow-hidden rounded-lg bg-muted">
                         {listing.coverThumbnailUrl ?? listing.coverImageUrl ? (
-                          <Image src={listing.coverThumbnailUrl ?? listing.coverImageUrl!} alt={listing.name} fill sizes="48px" className="object-cover" />
+                          <Image src={listing.coverThumbnailUrl ?? listing.coverImageUrl!} alt={listing.name} fill sizes="72px" className="object-cover" />
                         ) : (
                           <div className="flex h-full items-center justify-center text-muted-foreground">
-                            <Car className="size-5" />
+                            <Car className="size-7" />
                           </div>
                         )}
                       </div>

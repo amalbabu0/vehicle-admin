@@ -85,12 +85,12 @@ export function DeletedListingCard({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
-      <div className="relative aspect-video w-full bg-muted">
+      <div className="relative aspect-4/3 w-full bg-muted">
         {cardImageUrl ? (
           <Image src={cardImageUrl} alt={name} fill sizes="(max-width: 640px) 50vw, 340px" className="object-cover opacity-80" />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
-            <ImageOff className="size-8" />
+            <ImageOff className="size-11" />
           </div>
         )}
       </div>

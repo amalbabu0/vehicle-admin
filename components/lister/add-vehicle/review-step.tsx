@@ -75,12 +75,12 @@ export function ReviewStep({
         ) : (
           <div className="flex gap-2 pt-1">
             {formState.imageUrls.slice(0, 4).map((image) => (
-              <div key={image.url} className="relative size-14 overflow-hidden rounded-lg border border-border">
-                <Image src={image.thumbnailUrl ?? image.url} alt="" fill sizes="56px" className="object-cover" />
+              <div key={image.url} className="relative size-20 overflow-hidden rounded-lg border border-border">
+                <Image src={image.thumbnailUrl ?? image.url} alt="" fill sizes="80px" className="object-cover" />
               </div>
             ))}
             {formState.imageUrls.length > 4 ? (
-              <div className="flex size-14 items-center justify-center rounded-lg border border-border text-xs text-muted-foreground">
+              <div className="flex size-20 items-center justify-center rounded-lg border border-border text-xs text-muted-foreground">
                 +{formState.imageUrls.length - 4}
               </div>
             ) : null}

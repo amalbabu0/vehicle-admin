@@ -116,19 +116,25 @@ export function ImagesStep({
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {formState.imageUrls.map((image, index) => (
             <div key={image.url} className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-muted">
-              <Image src={image.thumbnailUrl ?? image.url} alt={`Vehicle photo ${index + 1}`} fill sizes="200px" className="object-cover" />
+              <Image
+                src={image.thumbnailUrl ?? image.url}
+                alt={`Vehicle photo ${index + 1}`}
+                fill
+                sizes="(max-width: 640px) 50vw, 240px"
+                className="object-cover"
+              />
               {index === 0 ? (
-                <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium">
-                  <Star className="size-2.5 fill-current" /> Cover
+                <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-1 text-xs font-medium">
+                  <Star className="size-3 fill-current" /> Cover
                 </span>
               ) : null}
               <button
                 type="button"
                 onClick={() => removeImage(index)}
                 aria-label="Remove image"
-                className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-background/90 text-foreground"
+                className="absolute right-1.5 top-1.5 flex size-9 items-center justify-center rounded-full bg-background/90 text-foreground"
               >
-                <X className="size-3.5" />
+                <X className="size-4.5" />
               </button>
               <div className="absolute inset-x-1.5 bottom-1.5 flex justify-between">
                 <button

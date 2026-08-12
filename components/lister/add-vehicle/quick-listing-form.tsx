@@ -230,9 +230,9 @@ export function QuickListingForm({
                   type="button"
                   onClick={() => removeImage(image.id)}
                   aria-label="Remove vehicle image"
-                  className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-background/90 text-foreground"
+                  className="absolute right-1.5 top-1.5 flex size-9 items-center justify-center rounded-full bg-background/90 text-foreground"
                 >
-                  <X className="size-3.5" />
+                  <X className="size-4.5" />
                 </button>
               </div>
             ))}

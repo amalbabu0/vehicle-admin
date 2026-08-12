@@ -1,6 +1,7 @@
 "use client";
 
-import { Car, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { ListerNavList } from "@/components/lister/lister-nav-list";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ export function ListerSidebar({ collapsed, onToggleCollapsed }: { collapsed: boo
       )}
     >
       <div className={cn("flex h-16 items-center gap-2 border-b border-border px-4", collapsed && "justify-center px-2")}>
-        <Car className="size-6 shrink-0 text-primary" />
+        <BrandMark />
         {!collapsed && <span className="truncate text-base font-semibold">Kerala Lease Hub</span>}
       </div>
 

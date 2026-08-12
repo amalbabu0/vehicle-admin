@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Car, LayoutDashboard, MoreHorizontal, PlusCircle } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { AdminNavList } from "@/components/admin/admin-nav-list";
 import { cn } from "@/lib/utils";
@@ -61,7 +62,7 @@ export function AdminBottomNav() {
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0">
           <SheetTitle className="flex items-center gap-2 border-b border-border px-4 py-4">
-            <Car className="size-5 text-primary" /> Kerala Lease Hub
+            <BrandMark className="size-10" /> Kerala Lease Hub
           </SheetTitle>
           <div className="p-3">
             <AdminNavList onNavigate={() => setOpen(false)} />

@@ -37,12 +37,12 @@ export function VehicleCard({
       src={cardImageUrl}
       alt={altText}
       fill
-      sizes={view === "list" ? "112px" : "(max-width: 640px) 50vw, 340px"}
+      sizes={view === "list" ? "(max-width: 640px) 112px, 144px" : "(max-width: 640px) 50vw, 340px"}
       className="object-cover"
     />
   ) : (
     <div className="flex h-full items-center justify-center text-muted-foreground">
-      <ImageOff className="size-6" />
+      <ImageOff className="size-9" />
     </div>
   );
 
@@ -64,7 +64,7 @@ export function VehicleCard({
   if (view === "list") {
     return (
       <div className="flex gap-3 rounded-xl border border-border bg-card p-2.5 shadow-sm shadow-black/5 transition-all duration-200 hover:shadow-md">
-        <div className="relative size-24 shrink-0 overflow-hidden rounded-lg bg-muted sm:size-28">{image}</div>
+        <div className="relative size-28 shrink-0 overflow-hidden rounded-lg bg-muted sm:size-36">{image}</div>
 
         <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
           <div className="space-y-1.5">
@@ -102,7 +102,7 @@ export function VehicleCard({
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm shadow-black/5 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
-      <div className="relative aspect-video w-full overflow-hidden bg-muted">
+      <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
         {image}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-90" />
 

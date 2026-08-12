@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Car, ChevronsLeft, ChevronsRight, Search } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Search } from "lucide-react";
 import { ADMIN_NAV_ITEMS } from "@/lib/admin/nav-items";
+import { BrandMark } from "@/components/brand-mark";
 import { AdminNavList } from "@/components/admin/admin-nav-list";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,7 +26,7 @@ export function AdminSidebar({ collapsed, onToggleCollapsed }: { collapsed: bool
       )}
     >
       <div className={cn("flex h-16 items-center gap-2 border-b border-border px-4", collapsed && "justify-center px-2")}>
-        <Car className="size-6 shrink-0 text-primary" />
+        <BrandMark />
         {!collapsed && <span className="truncate text-base font-semibold">Kerala Lease Hub</span>}
       </div>
 

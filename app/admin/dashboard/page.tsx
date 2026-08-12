@@ -160,12 +160,12 @@ export default async function AdminDashboardPage() {
 
                 return (
                   <li key={listing.id} className="flex items-center gap-3 rounded-xl bg-muted/60 p-2 pr-3 text-sm">
-                    <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+                    <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted">
                       {cardImageUrl ? (
-                        <Image src={cardImageUrl} alt={listing.name} fill sizes="56px" className="object-cover" />
+                        <Image src={cardImageUrl} alt={listing.name} fill sizes="80px" className="object-cover" />
                       ) : (
                         <div className="flex h-full items-center justify-center text-muted-foreground">
-                          <Car className="size-5" />
+                          <Car className="size-7" />
                         </div>
                       )}
                     </div>

@@ -83,12 +83,12 @@ export default async function ListerDashboardPage() {
 
               return (
                 <li key={vehicle.id} className="flex items-center gap-3 rounded-xl bg-muted/60 p-2 pr-3 text-sm">
-                  <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted">
+                  <div className="relative size-28 shrink-0 overflow-hidden rounded-lg bg-muted">
                     {cardImageUrl ? (
-                      <Image src={cardImageUrl} alt={vehicle.name} fill sizes="80px" className="object-cover" />
+                      <Image src={cardImageUrl} alt={vehicle.name} fill sizes="112px" className="object-cover" />
                     ) : (
                       <div className="flex h-full items-center justify-center text-muted-foreground">
-                        <ImageOff className="size-5" />
+                        <ImageOff className="size-8" />
                       </div>
                     )}
                   </div>

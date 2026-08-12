@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, ArrowRight } from "lucide-react";
-import appIcon from "@/app/icon.png";
 import { login, verifyLoginOtp } from "@/app/actions/auth";
 import { useSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -189,7 +188,10 @@ export default function LoginPage() {
   return (
     <>
       <div className="mb-6 flex flex-col items-center gap-3 text-center">
-        <Image src={appIcon} alt="" width={40} height={40} className="size-10" priority />
+        {/* Full brand badge instead of the 40px app icon — legible at this
+            size, and swapped by theme in CSS so the server pass matches. */}
+        <Image src="/branding/logo-light.webp" alt="Kerala Lease Hub" width={80} height={80} className="size-20 object-contain dark:hidden" priority />
+        <Image src="/branding/logo-dark.webp" alt="Kerala Lease Hub" width={80} height={80} className="hidden size-20 object-contain dark:block" priority />
         <h1 className="text-xl font-semibold">Sign in</h1>
       </div>
 
