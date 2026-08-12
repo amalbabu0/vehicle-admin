@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { verifyTurnstileToken } from "@/lib/turnstile";
-import { authRateLimit, checkRateLimit } from "@/lib/rate-limit";
+import { checkAuthRateLimit } from "@/lib/rate-limit";
 import { env } from "@/lib/env";
 import type { Json } from "@/lib/supabase/database.types";
 
@@ -103,7 +103,7 @@ export async function login(_prevState: ActionState, formData: FormData): Promis
 
   const ip = await clientIp();
   const { email } = validated.data;
-  const { success: withinLimit } = await checkRateLimit(authRateLimit, `login:${ip}`);
+  const withinLimit = await checkAuthRateLimit("login", ip, email);
   if (!withinLimit) {
     await logFailedLogin(email, ip, "rate_limited");
     return { message: "Too many attempts. Try again in a few minutes." };
@@ -216,7 +216,9 @@ export async function verifyLoginOtp(_prevState: ActionState, formData: FormData
   const { email, otp } = validated.data;
   const ip = await clientIp();
 
-  const { success: withinLimit } = await checkRateLimit(authRateLimit, `otp-verify:${email}`);
+  // Was email-keyed only, which left one IP free to spray codes across many
+  // accounts; now bounded on both axes like the other two entry points.
+  const withinLimit = await checkAuthRateLimit("otp-verify", ip, email);
   if (!withinLimit) {
     await logFailedLogin(email, ip, "otp_rate_limited");
     return { message: "Too many attempts. Sign in again to request a new code." };
@@ -265,7 +267,7 @@ export async function forgotPassword(_prevState: ActionState, formData: FormData
   }
 
   const ip = await clientIp();
-  const { success: withinLimit } = await checkRateLimit(authRateLimit, `forgot:${ip}`);
+  const withinLimit = await checkAuthRateLimit("forgot", ip, validated.data.email);
   if (!withinLimit) {
     return { message: "Too many attempts. Try again in a few minutes." };
   }

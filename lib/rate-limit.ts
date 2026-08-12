@@ -39,3 +39,26 @@ export async function checkRateLimit(
   const { success, remaining } = await limiter.limit(identifier);
   return { success, remaining };
 }
+
+/**
+ * Rate-limit an auth attempt on BOTH the caller's IP and the target email;
+ * either budget running out blocks it.
+ *
+ * An IP-only key lets an attacker with many IPs grind one specific account,
+ * because every IP starts with its own fresh 5-attempt budget. That matters
+ * more here than on the public app: this login tells you when a password is
+ * correct — a wrong one returns "Incorrect email or password", a right one
+ * returns the OTP form — so unlimited attempts confirm an admin's password
+ * outright, leaving only the emailed code in the way.
+ *
+ * Mirrors the user app's lib/rate-limit.ts; the two apps deliberately share
+ * no package, so keep them in sync by hand.
+ */
+export async function checkAuthRateLimit(action: string, ip: string, email: string): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const [byIp, byEmail] = await Promise.all([
+    checkRateLimit(authRateLimit, `${action}:${ip}`),
+    checkRateLimit(authRateLimit, `${action}:email:${normalizedEmail}`),
+  ]);
+  return byIp.success && byEmail.success;
+}
