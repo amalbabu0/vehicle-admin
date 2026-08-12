@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
@@ -78,9 +79,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Images must be 10 MB or smaller." }, { status: 400 });
   }
 
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+  // Hashed from the original bytes, before resize/compress, so re-uploading
+  // the exact same photo (even under a different filename) always produces
+  // the same hash — this is what the duplicate-listing check compares.
+  const contentHash = createHash("sha256").update(inputBuffer).digest("hex");
+
   let variants: Awaited<ReturnType<typeof buildVariants>>;
   try {
-    variants = await buildVariants(Buffer.from(await file.arrayBuffer()));
+    variants = await buildVariants(inputBuffer);
   } catch {
     // Covers corrupt files and formats sharp's libvips build can't decode
     // — notably, this build has libheif but no HEVC decoder, so genuine
@@ -102,7 +109,7 @@ export async function POST(request: Request) {
       uploadVariant(`${baseKey}-thumb.webp`, variants.thumbnail),
     ]);
 
-    return NextResponse.json({ url, mediumUrl, thumbnailUrl }, { status: 201 });
+    return NextResponse.json({ url, mediumUrl, thumbnailUrl, contentHash }, { status: 201 });
   } catch {
     return NextResponse.json({ message: "Upload failed. Check your connection and try again." }, { status: 500 });
   }

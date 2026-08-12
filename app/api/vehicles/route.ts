@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdminOrLister } from "@/lib/auth/dal";
 import { vehicleCreateSchema } from "@/lib/validators/vehicle";
 import { resolveVehicleReferenceIds } from "@/lib/vehicles/references";
+import { findDuplicateVehicle } from "@/lib/vehicles/duplicate-check";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -26,6 +27,21 @@ export async function POST(request: Request) {
         : `Location "${data.locationId}" was not found. Use a location available in the system.`,
     }, { status: 400 });
   }
+  const duplicate = await findDuplicateVehicle(supabase, {
+    listerId: profile.id,
+    leasePeriod: data.leasePeriod,
+    leaseAmount: Number(data.leaseAmount),
+    locationId,
+    registrationYear: data.year ? Number(data.year) : null,
+    imageHashes: data.imageUrls.map((image) => image.contentHash),
+  });
+  if (duplicate) {
+    return NextResponse.json(
+      { message: `This vehicle is already listed as "${duplicate.name}" (${duplicate.status}). Edit that listing instead of creating a new one.`, duplicateId: duplicate.id },
+      { status: 409 }
+    );
+  }
+
   const name = `${data.brand} ${data.model}`.trim();
   const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "vehicle"}-${crypto.randomUUID().slice(0, 8)}`;
   const { data: vehicle, error } = await supabase.from("vehicles").insert({
@@ -60,6 +76,7 @@ export async function POST(request: Request) {
       url: image.url,
       medium_url: image.mediumUrl ?? null,
       thumbnail_url: image.thumbnailUrl ?? null,
+      content_hash: image.contentHash ?? null,
       sort_order,
       is_cover: sort_order === 0,
     }))

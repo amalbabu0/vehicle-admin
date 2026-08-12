@@ -131,6 +131,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       url: image.url,
       medium_url: image.mediumUrl ?? null,
       thumbnail_url: image.thumbnailUrl ?? null,
+      content_hash: image.contentHash ?? null,
       sort_order,
       is_cover: sort_order === 0,
     }))

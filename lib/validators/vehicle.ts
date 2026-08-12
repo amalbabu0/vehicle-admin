@@ -25,9 +25,10 @@ const imageEntrySchema = z
       url: z.string().url("Enter a valid image URL."),
       mediumUrl: z.string().url().optional(),
       thumbnailUrl: z.string().url().optional(),
+      contentHash: z.string().optional(),
     }),
   ])
-  .transform((entry) => (typeof entry === "string" ? { url: entry, mediumUrl: undefined, thumbnailUrl: undefined } : entry));
+  .transform((entry) => (typeof entry === "string" ? { url: entry, mediumUrl: undefined, thumbnailUrl: undefined, contentHash: undefined } : entry));
 
 export type VehicleImageEntry = z.infer<typeof imageEntrySchema>;
 

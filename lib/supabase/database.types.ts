@@ -445,6 +445,7 @@ export type Database = {
       }
       vehicle_images: {
         Row: {
+          content_hash: string | null
           created_at: string
           id: string
           is_cover: boolean
@@ -455,6 +456,7 @@ export type Database = {
           vehicle_id: string
         }
         Insert: {
+          content_hash?: string | null
           created_at?: string
           id?: string
           is_cover?: boolean
@@ -465,6 +467,7 @@ export type Database = {
           vehicle_id: string
         }
         Update: {
+          content_hash?: string | null
           created_at?: string
           id?: string
           is_cover?: boolean

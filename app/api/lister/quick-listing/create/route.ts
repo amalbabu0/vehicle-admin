@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdminOrLister } from "@/lib/auth/dal";
 import { quickVehicleCreateSchema } from "@/lib/validators/vehicle";
 import { resolveVehicleReferenceIds } from "@/lib/vehicles/references";
+import { findDuplicateVehicle } from "@/lib/vehicles/duplicate-check";
 
 /**
  * Quick Listing's create path. Same insert target and the same
@@ -35,6 +36,21 @@ export async function POST(request: Request) {
   const { brandId, locationId } = await resolveVehicleReferenceIds(supabase, data.brand, data.locationId ?? "");
   if (!brandId) {
     return NextResponse.json({ message: `Brand "${data.brand}" could not be saved.` }, { status: 400 });
+  }
+
+  const duplicate = await findDuplicateVehicle(supabase, {
+    listerId: profile.id,
+    leasePeriod: data.leasePeriod,
+    leaseAmount: Number(data.leaseAmount),
+    locationId,
+    registrationYear: data.year ? Number(data.year) : null,
+    imageHashes: data.imageUrls.map((image) => image.contentHash),
+  });
+  if (duplicate) {
+    return NextResponse.json(
+      { message: `This vehicle is already listed as "${duplicate.name}" (${duplicate.status}). Edit that listing instead of creating a new one.`, duplicateId: duplicate.id },
+      { status: 409 }
+    );
   }
 
   const name = `${data.brand} ${data.model}`.trim();
@@ -83,6 +99,7 @@ export async function POST(request: Request) {
       url: image.url,
       medium_url: image.mediumUrl ?? null,
       thumbnail_url: image.thumbnailUrl ?? null,
+      content_hash: image.contentHash ?? null,
       sort_order,
       is_cover: sort_order === 0,
     }))

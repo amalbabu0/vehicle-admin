@@ -6,6 +6,10 @@ export type WizardImage = {
   url: string;
   mediumUrl?: string;
   thumbnailUrl?: string;
+  /** sha256 of the original upload — used by the duplicate-listing check.
+   * Optional for the same reason medium/thumbnail are: pre-existing images
+   * uploaded before this field existed won't have one. */
+  contentHash?: string;
 };
 
 export type WizardFormState = {

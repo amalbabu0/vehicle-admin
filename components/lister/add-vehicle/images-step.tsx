@@ -43,7 +43,7 @@ export function ImagesStep({
         const response = await fetch("/api/uploads/vehicle-image", { method: "POST", body });
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.message || "Unable to upload image.");
-        uploaded.push({ url: payload.url, mediumUrl: payload.mediumUrl, thumbnailUrl: payload.thumbnailUrl });
+        uploaded.push({ url: payload.url, mediumUrl: payload.mediumUrl, thumbnailUrl: payload.thumbnailUrl, contentHash: payload.contentHash });
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Unable to upload image.");
       } finally {
