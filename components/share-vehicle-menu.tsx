@@ -13,16 +13,77 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { buildWhatsAppShareUrl } from "@/lib/vehicles/share";
 
+/** Turns the fetched blob into a grayscale copy with an "ALREADY BOOKED"
+ * banner stamped across it — used for every image that actually leaves the
+ * app (native share attachment, downloaded file), so a booked vehicle can
+ * never be shared or saved looking like it's still available. The source
+ * blob is loaded into the canvas via a blob: object URL (not the original
+ * remote URL), which keeps the canvas untainted regardless of the CDN's
+ * CORS headers — we already have the bytes from the fetch() below. */
+async function stampBookedImage(blob: Blob): Promise<Blob> {
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new window.Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("Failed to load image."));
+      el.src = objectUrl;
+    });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth || 1;
+    canvas.height = img.naturalHeight || 1;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return blob;
+
+    ctx.filter = "grayscale(1)";
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    ctx.filter = "none";
+
+    const bannerHeight = Math.max(Math.round(canvas.height * 0.12), 32);
+    const bannerY = Math.round((canvas.height - bannerHeight) / 2);
+    ctx.fillStyle = "rgba(220, 38, 38, 0.92)";
+    ctx.fillRect(0, bannerY, canvas.width, bannerHeight);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `700 ${Math.round(bannerHeight * 0.5)}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("ALREADY BOOKED", canvas.width / 2, bannerY + bannerHeight / 2 + 1);
+
+    const stamped = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+    return stamped ?? blob;
+  } catch {
+    // Any failure (decode error, tainted canvas, etc.) falls back to the
+    // original image rather than blocking the share/download entirely.
+    return blob;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+async function fetchShareableBlob(imageUrl: string, isBooked: boolean): Promise<Blob> {
+  const response = await fetch(imageUrl);
+  const blob = await response.blob();
+  return isBooked ? stampBookedImage(blob) : blob;
+}
+
 export function ShareVehicleMenu({
   message,
   url,
   imageUrl,
   fileName,
+  isBooked = false,
 }: {
   message: string;
   url: string;
   imageUrl: string | null;
   fileName: string;
+  /** When true, any image that's actually shared or downloaded (native
+   * share, download) is grayscaled with an "ALREADY BOOKED" banner first —
+   * see stampBookedImage. The plain WhatsApp/copy actions carry no image;
+   * their honesty comes from `message` already being built with the booked
+   * framing upstream (see lib/vehicles/share.ts). */
+  isBooked?: boolean;
 }) {
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -47,8 +108,7 @@ export function ShareVehicleMenu({
     }
     setIsDownloading(true);
     try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
+      const blob = await fetchShareableBlob(imageUrl, isBooked);
       const objectUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = objectUrl;
@@ -68,8 +128,7 @@ export function ShareVehicleMenu({
     const shareData: ShareData = { title: message.split("\n")[0], text: message, url };
     try {
       if (imageUrl && navigator.canShare) {
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
+        const blob = await fetchShareableBlob(imageUrl, isBooked);
         const file = new File([blob], `${fileName}.jpg`, { type: blob.type || "image/jpeg" });
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({ ...shareData, files: [file] });

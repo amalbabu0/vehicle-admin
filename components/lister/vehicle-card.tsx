@@ -86,7 +86,7 @@ export function VehicleCard({
       alt={altText}
       fill
       sizes={view === "list" ? "(max-width: 640px) 112px, 144px" : "(max-width: 640px) 50vw, 340px"}
-      className="object-cover"
+      className={isBooked ? "object-cover grayscale" : "object-cover"}
     />
   ) : (
     <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -106,7 +106,7 @@ export function VehicleCard({
   ) : null;
 
   const shareRow = isPublished ? (
-    <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} />
+    <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} isBooked={isBooked} />
   ) : null;
 
   if (view === "list") {

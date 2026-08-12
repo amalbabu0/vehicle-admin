@@ -130,6 +130,7 @@ export type LatestListing = {
   districtName: string | null;
   coverImageUrl: string | null;
   coverThumbnailUrl: string | null;
+  bookingStatus: "available" | "booked";
 };
 
 type LatestListingRow = {
@@ -142,6 +143,7 @@ type LatestListingRow = {
   lease_period: string;
   registration_year: number | null;
   location_id: string | null;
+  booking_status: "available" | "booked";
   brands: { name: string } | null;
   vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
@@ -152,7 +154,7 @@ export async function getLatestListings(limit = 5): Promise<LatestListing[]> {
     supabase
       .from("vehicles")
       .select(
-        `id, name, slug, status, created_at, lease_amount, lease_period, registration_year, location_id,
+        `id, name, slug, status, created_at, lease_amount, lease_period, registration_year, location_id, booking_status,
          brands ( name ),
          vehicle_images ( url, thumbnail_url, is_cover, sort_order )`
       )
@@ -179,6 +181,7 @@ export async function getLatestListings(limit = 5): Promise<LatestListing[]> {
       districtName: row.location_id ? (locations.get(row.location_id)?.districtName ?? null) : null,
       coverImageUrl: cover?.url ?? null,
       coverThumbnailUrl: cover?.thumbnail_url ?? null,
+      bookingStatus: row.booking_status,
     };
   });
 }

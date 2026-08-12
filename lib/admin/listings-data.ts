@@ -27,6 +27,7 @@ export type AdminListingRow = {
   kmDriven: number | null;
   ownershipCount: number | null;
   condition: string | null;
+  bookingStatus: Database["public"]["Enums"]["vehicle_booking_status"];
 };
 
 export type ListingsFilter = {
@@ -50,7 +51,7 @@ export type ListingsFilter = {
 // downstream checked it, silently rendering as "0 listings found".
 const LISTING_SELECT = `
   id, name, slug, model, registration_year, lease_amount, lease_period, fuel_type,
-  transmission, status, created_at, location_id, lister_id, km_driven, ownership_count, condition,
+  transmission, status, created_at, location_id, lister_id, km_driven, ownership_count, condition, booking_status,
   brands ( name ),
   admin_profiles!vehicles_lister_id_fkey ( full_name ),
   vehicle_images ( url, thumbnail_url, is_cover, sort_order )
@@ -73,6 +74,7 @@ type ListingRow = {
   km_driven: number | null;
   ownership_count: number | null;
   condition: string | null;
+  booking_status: Database["public"]["Enums"]["vehicle_booking_status"];
   brands: { name: string } | null;
   admin_profiles: { full_name: string | null } | null;
   vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
@@ -160,6 +162,7 @@ export async function getListingsPage(
       kmDriven: row.km_driven,
       ownershipCount: row.ownership_count,
       condition: row.condition,
+      bookingStatus: row.booking_status,
     };
   });
 

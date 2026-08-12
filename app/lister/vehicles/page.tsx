@@ -32,6 +32,7 @@ export default async function ListerVehiclesPage() {
         directOwner: vehicle.directOwner,
         serviceChargePercent: vehicle.serviceChargePercent,
         contactPhone: vehicle.contactPhone,
+        bookingStatus: vehicle.bookingStatus,
       },
       shareUrl
     );

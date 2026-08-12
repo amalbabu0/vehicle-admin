@@ -65,6 +65,7 @@ export type ListerRecentVehicle = {
   directOwner: boolean;
   serviceChargePercent: number | null;
   contactPhone: string;
+  bookingStatus: "available" | "booked";
 };
 
 type RecentVehicleRow = {
@@ -86,6 +87,7 @@ type RecentVehicleRow = {
   direct_owner: boolean;
   service_charge_percent: number | null;
   contact_phone: string;
+  booking_status: "available" | "booked";
   brands: { name: string } | null;
   vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
@@ -98,7 +100,7 @@ export async function getListerRecentVehicles(listerId: string, limit = 5): Prom
       .select(
         `id, name, slug, model, status, created_at, lease_amount, lease_period, registration_year, location_id,
          fuel_type, transmission, km_driven, ownership_count, condition,
-         direct_owner, service_charge_percent, contact_phone,
+         direct_owner, service_charge_percent, contact_phone, booking_status,
          brands ( name ),
          vehicle_images ( url, thumbnail_url, is_cover, sort_order )`
       )
@@ -135,6 +137,7 @@ export async function getListerRecentVehicles(listerId: string, limit = 5): Prom
       directOwner: row.direct_owner,
       serviceChargePercent: row.service_charge_percent,
       contactPhone: row.contact_phone,
+      bookingStatus: row.booking_status,
     };
   });
 }

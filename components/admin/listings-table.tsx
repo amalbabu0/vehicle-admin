@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ListingRowActions } from "@/components/admin/listing-row-actions";
+import { BookedBadge } from "@/components/lister/status-badge";
 import type { AdminListingRow } from "@/lib/admin/listings-data";
 
 type Row = AdminListingRow & { shareMessage: string; shareUrl: string };
@@ -148,7 +149,9 @@ export function ListingsTable({ initialListings }: { initialListings: Row[] }) {
                 </TableCell>
               </TableRow>
             ) : (
-              listings.map((listing) => (
+              listings.map((listing) => {
+                const isBooked = listing.bookingStatus === "booked";
+                return (
                 <TableRow key={listing.id}>
                   <TableCell>
                     <Checkbox checked={selected.has(listing.id)} onCheckedChange={() => toggleOne(listing.id)} aria-label={`Select ${listing.name}`} />
@@ -157,7 +160,13 @@ export function ListingsTable({ initialListings }: { initialListings: Row[] }) {
                     <div className="flex items-center gap-3">
                       <div className="relative size-18 shrink-0 overflow-hidden rounded-lg bg-muted">
                         {listing.coverThumbnailUrl ?? listing.coverImageUrl ? (
-                          <Image src={listing.coverThumbnailUrl ?? listing.coverImageUrl!} alt={listing.name} fill sizes="72px" className="object-cover" />
+                          <Image
+                            src={listing.coverThumbnailUrl ?? listing.coverImageUrl!}
+                            alt={listing.name}
+                            fill
+                            sizes="72px"
+                            className={isBooked ? "object-cover grayscale" : "object-cover"}
+                          />
                         ) : (
                           <div className="flex h-full items-center justify-center text-muted-foreground">
                             <Car className="size-7" />
@@ -183,9 +192,12 @@ export function ListingsTable({ initialListings }: { initialListings: Row[] }) {
                   <TableCell className="text-sm text-muted-foreground">{listing.districtName ?? "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{listing.listerName ?? "—"}</TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_TONE[listing.status] ?? "outline"} className="capitalize">
-                      {listing.status.replaceAll("_", " ")}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant={STATUS_TONE[listing.status] ?? "outline"} className="capitalize">
+                        {listing.status.replaceAll("_", " ")}
+                      </Badge>
+                      {isBooked ? <BookedBadge /> : null}
+                    </div>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{new Date(listing.createdAt).toLocaleDateString("en-IN")}</TableCell>
                   <TableCell>
@@ -197,7 +209,8 @@ export function ListingsTable({ initialListings }: { initialListings: Row[] }) {
                     />
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>

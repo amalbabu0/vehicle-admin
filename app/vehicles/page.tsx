@@ -22,7 +22,7 @@ const ITEMS_PER_PAGE = 20;
 const VEHICLE_LIST_SELECT = `
   id, name, slug, status, lease_amount, lease_period, fuel_type, transmission,
   view_count, created_at, model, registration_year, km_driven, ownership_count,
-  condition, location_id,
+  condition, location_id, booking_status,
   brands ( name ),
   vehicle_images ( url, is_cover, sort_order )
 `;
@@ -44,6 +44,7 @@ type VehicleListRow = {
   ownership_count: number | null;
   condition: string | null;
   location_id: string | null;
+  booking_status: Database["public"]["Enums"]["vehicle_booking_status"];
   brands: { name: string } | null;
   vehicle_images: { url: string; is_cover: boolean; sort_order: number }[];
 };
@@ -142,14 +143,19 @@ export default async function VehiclesPage(props: {
                       districtName: vehicle.location_id ? locations.get(vehicle.location_id)?.districtName ?? null : null,
                       condition: vehicle.condition,
                       slug: vehicle.slug,
+                      bookingStatus: vehicle.booking_status,
                     },
                     publicUrl
                   );
+                  const isBooked = vehicle.booking_status === "booked";
 
                   return (
                     <TableRow key={vehicle.id}>
                       <TableCell>{vehicle.name}</TableCell>
-                      <TableCell>{vehicle.status.replaceAll("_", " ")}</TableCell>
+                      <TableCell>
+                        {vehicle.status.replaceAll("_", " ")}
+                        {isBooked ? <span className="ml-1.5 font-medium text-destructive">(Booked)</span> : null}
+                      </TableCell>
                       <TableCell>₹{vehicle.lease_amount.toLocaleString("en-IN")}</TableCell>
                       <TableCell>{vehicle.lease_period}</TableCell>
                       <TableCell>{vehicle.fuel_type ?? "—"}</TableCell>
@@ -160,7 +166,7 @@ export default async function VehiclesPage(props: {
                         <VehicleStatusActions id={vehicle.id} status={vehicle.status} />
                       </TableCell>
                       <TableCell>
-                        <ShareVehicleMenu message={message} url={publicUrl} imageUrl={coverImageUrl} fileName={vehicle.slug} />
+                        <ShareVehicleMenu message={message} url={publicUrl} imageUrl={coverImageUrl} fileName={vehicle.slug} isBooked={isBooked} />
                       </TableCell>
                     </TableRow>
                   );

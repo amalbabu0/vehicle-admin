@@ -73,7 +73,13 @@ export function ListingRowActions({
         <TooltipContent>View public page</TooltipContent>
       </Tooltip>
 
-      <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={listing.coverImageUrl} fileName={listing.slug} />
+      <ShareVehicleMenu
+        message={shareMessage}
+        url={shareUrl}
+        imageUrl={listing.coverImageUrl}
+        fileName={listing.slug}
+        isBooked={listing.bookingStatus === "booked"}
+      />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

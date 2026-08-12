@@ -6,7 +6,7 @@ import { Car, PlusCircle, PackageOpen, Users, ImageOff } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth/dal";
 import { getListerStats, getListerRecentVehicles, getPublicUserCount } from "@/lib/lister/dashboard-data";
 import { ListerStatCard } from "@/components/lister/lister-stat-card";
-import { StatusDot } from "@/components/lister/status-badge";
+import { StatusDot, BookedBadge } from "@/components/lister/status-badge";
 import { ShareVehicleMenu } from "@/components/share-vehicle-menu";
 import { Button } from "@/components/ui/button";
 import { buildVehicleShareMessage } from "@/lib/vehicles/share";
@@ -59,6 +59,7 @@ export default async function ListerDashboardPage() {
             {recent.map((vehicle) => {
               const cardImageUrl = vehicle.coverThumbnailUrl ?? vehicle.coverImageUrl;
               const shareUrl = `${env.PUBLIC_SITE_URL}/vehicles/${vehicle.slug}`;
+              const isBooked = vehicle.bookingStatus === "booked";
               const shareMessage = buildVehicleShareMessage(
                 {
                   name: vehicle.name,
@@ -77,6 +78,7 @@ export default async function ListerDashboardPage() {
                   directOwner: vehicle.directOwner,
                   serviceChargePercent: vehicle.serviceChargePercent,
                   contactPhone: vehicle.contactPhone,
+                  bookingStatus: vehicle.bookingStatus,
                 },
                 shareUrl
               );
@@ -85,7 +87,13 @@ export default async function ListerDashboardPage() {
                 <li key={vehicle.id} className="flex items-center gap-3 rounded-xl bg-muted/60 p-2 pr-3 text-sm">
                   <div className="relative size-28 shrink-0 overflow-hidden rounded-lg bg-muted">
                     {cardImageUrl ? (
-                      <Image src={cardImageUrl} alt={vehicle.name} fill sizes="112px" className="object-cover" />
+                      <Image
+                        src={cardImageUrl}
+                        alt={vehicle.name}
+                        fill
+                        sizes="112px"
+                        className={isBooked ? "object-cover grayscale" : "object-cover"}
+                      />
                     ) : (
                       <div className="flex h-full items-center justify-center text-muted-foreground">
                         <ImageOff className="size-8" />
@@ -98,11 +106,12 @@ export default async function ListerDashboardPage() {
                     <div className="mt-1 flex items-center gap-1.5">
                       <StatusDot status={vehicle.status} />
                       <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(vehicle.createdAt), { addSuffix: true })}</span>
+                      {isBooked ? <BookedBadge /> : null}
                     </div>
                   </div>
 
                   {vehicle.status === "published" ? (
-                    <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} />
+                    <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={vehicle.coverImageUrl} fileName={vehicle.slug} isBooked={isBooked} />
                   ) : null}
                 </li>
               );

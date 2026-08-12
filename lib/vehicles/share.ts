@@ -23,6 +23,10 @@ export type ShareableVehicle = {
   directOwner?: boolean | null;
   serviceChargePercent?: number | null;
   contactPhone?: string | null;
+  /** Optional so admin-side callers that haven't fetched it yet still
+   * compile — undefined is treated the same as "available" (never blocks
+   * a share, just skips the booked framing below). */
+  bookingStatus?: "available" | "booked";
 };
 
 const WHATSAPP_CHANNEL_URL = "https://whatsapp.com/channel/0029Vb7g7FCICVfuoWjwAR3A";
@@ -47,8 +51,14 @@ export function formatOwnership(count: number | null): string | null {
  */
 export function buildVehicleShareMessage(vehicle: ShareableVehicle, publicUrl: string): string {
   const title = [vehicle.brandName, vehicle.model].filter(Boolean).join(" ") || vehicle.name;
+  const isBooked = vehicle.bookingStatus === "booked";
 
-  const lines = [`🚨 *FOR LEASE – ${title.toUpperCase()}* 🚨`, ""];
+  // A booked vehicle isn't "FOR LEASE" anymore — heading it that way would
+  // actively mislead whoever the lister forwards this to. Swap the header
+  // and lead with the booked status instead of burying it among the specs.
+  const lines = isBooked
+    ? [`🚫 *ALREADY BOOKED – ${title.toUpperCase()}* 🚫`, "", "This vehicle has already been booked and is no longer available.", ""]
+    : [`🚨 *FOR LEASE – ${title.toUpperCase()}* 🚨`, ""];
 
   if (vehicle.registrationYear) lines.push(`🗓️ MODEL : ${vehicle.registrationYear}`);
   if (vehicle.fuelType) lines.push(`⛽ FUEL : ${vehicle.fuelType}`);

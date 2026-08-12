@@ -17,7 +17,7 @@ import {
 } from "@/lib/admin/dashboard-data";
 import { StatCard } from "@/components/admin/stat-card";
 import { DistributionBars } from "@/components/admin/distribution-bars";
-import { StatusDot } from "@/components/lister/status-badge";
+import { StatusDot, BookedBadge } from "@/components/lister/status-badge";
 import { ShareVehicleMenu } from "@/components/share-vehicle-menu";
 import { buildVehicleShareMessage } from "@/lib/vehicles/share";
 import { env } from "@/lib/env";
@@ -139,6 +139,7 @@ export default async function AdminDashboardPage() {
               {latestListings.map((listing) => {
                 const cardImageUrl = listing.coverThumbnailUrl ?? listing.coverImageUrl;
                 const shareUrl = `${env.PUBLIC_SITE_URL}/vehicles/${listing.slug}`;
+                const isBooked = listing.bookingStatus === "booked";
                 const shareMessage = buildVehicleShareMessage(
                   {
                     name: listing.name,
@@ -154,6 +155,7 @@ export default async function AdminDashboardPage() {
                     districtName: listing.districtName,
                     condition: null,
                     slug: listing.slug,
+                    bookingStatus: listing.bookingStatus,
                   },
                   shareUrl
                 );
@@ -162,7 +164,13 @@ export default async function AdminDashboardPage() {
                   <li key={listing.id} className="flex items-center gap-3 rounded-xl bg-muted/60 p-2 pr-3 text-sm">
                     <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted">
                       {cardImageUrl ? (
-                        <Image src={cardImageUrl} alt={listing.name} fill sizes="80px" className="object-cover" />
+                        <Image
+                          src={cardImageUrl}
+                          alt={listing.name}
+                          fill
+                          sizes="80px"
+                          className={isBooked ? "object-cover grayscale" : "object-cover"}
+                        />
                       ) : (
                         <div className="flex h-full items-center justify-center text-muted-foreground">
                           <Car className="size-7" />
@@ -177,11 +185,12 @@ export default async function AdminDashboardPage() {
                         <span className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(listing.createdAt), { addSuffix: true })}
                         </span>
+                        {isBooked ? <BookedBadge /> : null}
                       </div>
                     </div>
 
                     {listing.status === "published" ? (
-                      <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={listing.coverImageUrl} fileName={listing.slug} />
+                      <ShareVehicleMenu message={shareMessage} url={shareUrl} imageUrl={listing.coverImageUrl} fileName={listing.slug} isBooked={isBooked} />
                     ) : null}
                   </li>
                 );
