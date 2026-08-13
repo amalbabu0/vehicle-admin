@@ -75,16 +75,16 @@ type VehicleRow = {
 // same reasoning as DELETED_LISTINGS_LIMIT in lib/admin/listings-data.ts.
 const LISTER_VEHICLES_LIMIT = 200;
 
-/** RLS (vehicles_select_own) scopes this to the signed-in lister's own
- * vehicles via the normal cookie-bound client — same reasoning as
- * dashboard-data.ts, no service-role client needed. */
-export async function getListerVehicles(listerId: string): Promise<ListerVehicleRow[]> {
+/** The whole shared inventory, not just the caller's own listings — RLS
+ * (vehicles_select_staff) admits any admin_profiles account, via the normal
+ * cookie-bound client, same reasoning as dashboard-data.ts, no service-role
+ * client needed. */
+export async function getListerVehicles(): Promise<ListerVehicleRow[]> {
   const supabase = await createClient();
   const [{ data }, locations, { data: featuredSetting }] = await Promise.all([
     supabase
       .from("vehicles")
       .select(VEHICLE_SELECT)
-      .eq("lister_id", listerId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
       .limit(LISTER_VEHICLES_LIMIT),
@@ -165,17 +165,16 @@ type DeletedVehicleRow = {
   vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
 
-/** RLS (vehicles_select_own) scopes this to the caller's own vehicles —
- * a lister can never see another lister's deleted listings through this,
- * regardless of what id is passed anywhere else in the app (see
- * migration 0022 — the select policy isn't restricted by is_deleted, the
- * ownership check is what actually keeps this scoped). */
-export async function getListerDeletedVehicles(listerId: string): Promise<ListerDeletedVehicle[]> {
+/** Every lister's deleted listings, not just the caller's — the shared
+ * recycle bin for the shared inventory (migration 0035). The select policy
+ * isn't restricted by is_deleted (see migration 0022), so the .eq below is
+ * what splits deleted from active, and deleted_by_profile is what records
+ * who removed it. */
+export async function getListerDeletedVehicles(): Promise<ListerDeletedVehicle[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("vehicles")
     .select(DELETED_VEHICLE_SELECT)
-    .eq("lister_id", listerId)
     .eq("is_deleted", true)
     .order("deleted_at", { ascending: false })
     .limit(LISTER_VEHICLES_LIMIT);
@@ -249,17 +248,16 @@ type VehicleEditRow = {
   vehicle_images: { url: string; medium_url: string | null; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
 
-/** RLS (vehicles_select_own) scopes this to the caller's own vehicle — a
- * mismatched listerId/id combination simply returns no row, not another
- * lister's data. Excludes soft-deleted rows deliberately: a listing has to
- * be restored before it can be edited again. */
-export async function getListerVehicleForEdit(id: string, listerId: string): Promise<ListerVehicleEditData | null> {
+/** Any listing in the shared inventory, whoever created it (migration
+ * 0035) — an unknown id returns null, which the page 404s on. Excludes
+ * soft-deleted rows deliberately: a listing has to be restored before it
+ * can be edited again. */
+export async function getListerVehicleForEdit(id: string): Promise<ListerVehicleEditData | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("vehicles")
     .select(VEHICLE_EDIT_SELECT)
     .eq("id", id)
-    .eq("lister_id", listerId)
     .eq("is_deleted", false)
     .maybeSingle();
   if (!data) return null;

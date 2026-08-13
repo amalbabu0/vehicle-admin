@@ -30,14 +30,15 @@ async function notifyPublicSiteToRevalidate(slug: string) {
  * booked; the public site just disables its contact actions and shows a
  * grayscale "Already Booked" treatment (see the user app's VehicleCard).
  *
- * Ownership is checked explicitly here (fetch-then-compare), not left to
- * RLS alone: RLS (vehicles_update_own/vehicles_update_admin) still enforces
- * the real boundary, but going through it blind would make "not found" and
- * "not yours" indistinguishable (both just match zero rows), and the two
- * need different messages.
+ * The row is fetched before updating so a missing listing gets a real 404
+ * rather than a silent zero-row update, and so the slug is on hand for the
+ * revalidation ping. There's no owner comparison: listers share one
+ * inventory (migration 0035), so any staff account may flip this flag on
+ * any listing — RLS (vehicles_update_staff) enforces exactly that, and the
+ * audit entry below records who did it.
  */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const profile = await requireAdminOrLister();
+  await requireAdminOrLister();
   const { id } = await params;
 
   const body = await request.json().catch(() => null);
@@ -49,7 +50,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const supabase = await createClient();
   const { data: existing, error: fetchError } = await supabase
     .from("vehicles")
-    .select("id, lister_id, slug")
+    .select("id, slug")
     .eq("id", id)
     .eq("is_deleted", false)
     .maybeSingle();
@@ -59,9 +60,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
   if (!existing) {
     return NextResponse.json({ message: "Vehicle listing not found." }, { status: 404 });
-  }
-  if (profile.role !== "admin" && existing.lister_id !== profile.id) {
-    return NextResponse.json({ message: "You are not authorized to update this vehicle." }, { status: 403 });
   }
 
   const { bookingStatus } = validation.data;

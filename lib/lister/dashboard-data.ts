@@ -4,21 +4,21 @@ import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { getLocationLookup } from "@/lib/vehicles/location-lookup";
 
 export type ListerStats = {
-  /** Count of this lister's own published vehicles — shown on the
-   * dashboard as "Total Vehicles". */
+  /** Count of published vehicles across the whole shared inventory — shown
+   * on the dashboard as "Total Vehicles". Not per-lister: every lister
+   * works the same pool (see migration 0035). */
   published: number;
 };
 
-/** Scoped to the current lister's own vehicles via the normal cookie-bound
- * client — RLS (vehicles_select_own) already restricts this count to rows
- * where lister_id = auth.uid(), so there's no need for (and no risk of
- * accidentally using) the service-role client. */
-export async function getListerStats(listerId: string): Promise<ListerStats> {
+/** Covers every lister's listings, via the normal cookie-bound client — RLS
+ * (vehicles_select_staff) admits any admin_profiles account to the shared
+ * inventory, so there's no need for (and no risk of accidentally using) the
+ * service-role client. */
+export async function getListerStats(): Promise<ListerStats> {
   const supabase = await createClient();
   const { count: published } = await supabase
     .from("vehicles")
     .select("id", { count: "exact", head: true })
-    .eq("lister_id", listerId)
     .eq("status", "published")
     .eq("is_deleted", false);
 
@@ -92,7 +92,7 @@ type RecentVehicleRow = {
   vehicle_images: { url: string; thumbnail_url: string | null; is_cover: boolean; sort_order: number }[];
 };
 
-export async function getListerRecentVehicles(listerId: string, limit = 5): Promise<ListerRecentVehicle[]> {
+export async function getListerRecentVehicles(limit = 5): Promise<ListerRecentVehicle[]> {
   const supabase = await createClient();
   const [{ data }, locations] = await Promise.all([
     supabase
@@ -104,7 +104,6 @@ export async function getListerRecentVehicles(listerId: string, limit = 5): Prom
          brands ( name ),
          vehicle_images ( url, thumbnail_url, is_cover, sort_order )`
       )
-      .eq("lister_id", listerId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
       .limit(limit),

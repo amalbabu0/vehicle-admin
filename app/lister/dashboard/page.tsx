@@ -18,9 +18,9 @@ export const revalidate = 0;
 export default async function ListerDashboardPage() {
   const profile = await getCurrentProfile();
   const [stats, userCount, recent] = await Promise.all([
-    getListerStats(profile.id),
+    getListerStats(),
     getPublicUserCount(),
-    getListerRecentVehicles(profile.id, 5),
+    getListerRecentVehicles(5),
   ]);
 
   return (
@@ -49,9 +49,9 @@ export default async function ListerDashboardPage() {
         {recent.length === 0 ? (
           <div className="mt-6 flex flex-col items-center gap-2 py-6 text-center">
             <PackageOpen className="size-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">You haven&apos;t added a vehicle yet.</p>
+            <p className="text-sm text-muted-foreground">No vehicles have been added yet.</p>
             <Link href="/lister/vehicles/add" className="mt-1 text-sm font-medium text-primary no-underline">
-              Add your first vehicle
+              Add the first vehicle
             </Link>
           </div>
         ) : (

@@ -18,9 +18,9 @@ async function notifyPublicSiteToRevalidate(slug: string) {
   }
 }
 
-// restore_vehicle() is a SECURITY DEFINER RPC that enforces ownership/admin
-// authorization itself (see migration 0022) — a lister can only ever
-// restore their own row, an admin can restore any.
+// restore_vehicle() is a SECURITY DEFINER RPC that enforces staff
+// authorization itself (see migrations 0022 and 0035) — any lister or admin
+// can restore any listing from the shared inventory's recycle bin.
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireAdminOrLister();
   const { id } = await params;

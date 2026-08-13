@@ -53,10 +53,20 @@ lockouts after several failed attempts helps prevent this.
   routes call `requireAdmin`/`requireAdminOrLister`, the cron route checks
   `CRON_SECRET`, and `/api/public-config` is intentionally unguarded (it serves only
   the anon-key-level values the browser already receives).
-- ✅ **No BOLA on vehicle mutations.** `requireAdminOrLister()` gates by role only, but
-  the routes use the cookie-bound RLS client rather than the service-role client, and
-  `vehicles_update_own` scopes UPDATE to `lister_id = auth.uid()` (admins via
-  `is_admin()`), so one lister cannot modify another's listing.
+- ⚠️ **Vehicle mutations are staff-wide by design, not per-lister (changed in migration
+  0035).** Listers share one common inventory: `vehicles_select_staff` /
+  `vehicles_update_staff` admit any account with an `admin_profiles` row, so a lister
+  can read, edit, soft-delete, and restore *any* listing, not only their own. This
+  deliberately gives up the per-lister BOLA boundary the earlier
+  `vehicles_update_own` (`lister_id = auth.uid()`) policy provided — it's a product
+  decision about how the team works, not an oversight. What still holds: the routes
+  use the cookie-bound RLS client (never the service-role client) so a *non*-staff
+  account still cannot touch a listing; `vehicles_insert_lister` still pins
+  `lister_id = auth.uid()` on create, so attribution is honest; permanent delete
+  remains `requireAdmin()`-only; and every mutation writes an `audit_logs` row with
+  `actor_id = auth.uid()`, which is now the accountability mechanism in place of
+  ownership. Note `lister_id` itself is writable by staff on UPDATE — nothing in the
+  app sends it, but the policy no longer forbids reassigning a listing's creator.
 - ⚠️ **Note on the public login's deliberate enumeration tradeoff.** The *user* app's
   `login()` still distinguishes "account doesn't exist" from "wrong password" on
   purpose, for clearer UX. That is a conscious product decision, documented at the

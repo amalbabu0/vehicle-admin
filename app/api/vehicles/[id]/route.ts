@@ -63,8 +63,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 }
 
 // Full-detail edit, distinct from PATCH's status-only transitions above.
-// RLS (vehicles_update_own / vehicles_update_admin) scopes this the same
-// way as PATCH — a lister can only ever update their own row. Status is
+// RLS (vehicles_update_staff) scopes this the same way as PATCH — any
+// lister or admin may edit any listing in the shared inventory, whoever
+// created it (migration 0035). Status is
 // deliberately untouched here: editing details and publishing/taking down
 // are separate actions (see lister-vehicle-actions.tsx), so an edit never
 // changes what's already live or hides a draft.
@@ -145,13 +146,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   return NextResponse.json({ message: "Listing updated." });
 }
 
-// RLS does the real authorization here: vehicles_delete_own_draft restricts
-// a lister to deleting only their own draft-status vehicles, while
-// vehicles_delete_admin gives admins unrestricted delete — same pattern the
 // Soft delete — moves the listing into the 10-day recoverable "Deleted
 // Listings" state (see migration 0022) rather than removing it immediately.
-// soft_delete_vehicle() is a SECURITY DEFINER RPC that enforces ownership/
-// admin authorization itself and computes deleted_at/deleted_by/
+// soft_delete_vehicle() is a SECURITY DEFINER RPC that enforces staff
+// authorization itself and computes deleted_at/deleted_by/
 // deleted_by_role/permanent_delete_at server-side — a client can never set
 // those fields directly, only ever trigger this one narrow action.
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {

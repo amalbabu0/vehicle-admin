@@ -207,6 +207,10 @@ recorded here rather than silently drifting from the doc:
   lister) and `user_profiles` (user) as two separate tables rather than one `profiles`
   table with a `role` column — see vehicle-admin migration 0004 for why (RLS is
   simpler when "which app can this account log into" is a table, not a column check).
+  Listers are **not** siloed from each other: migration 0035 made the inventory
+  shared, so every lister sees and manages the same pool of listings and
+  `vehicles.lister_id` is "created by" attribution rather than an authorization
+  boundary. See `SECURITY.md` for the tradeoff that entails.
 - **`vehicles`**: column names differ (`lease_amount`/`lease_period` instead of a flat
   `price`+`mileage`, `registration_year` instead of `year`, `km_driven` instead of
   `mileage`) — this platform is lease-first, not a one-time-sale marketplace, so the

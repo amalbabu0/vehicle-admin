@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import { Trash2 } from "lucide-react";
-import { getCurrentProfile } from "@/lib/auth/dal";
 import { getListerDeletedVehicles } from "@/lib/lister/vehicles-data";
 import { DeletedListingCard } from "@/components/deleted-listing-card";
 
 export const metadata: Metadata = { title: "Deleted Listings — Kerala Lease Hub" };
 export const revalidate = 0;
 
-// Guarded at the layout level (app/lister/layout.tsx) — RLS
-// (vehicles_select_own) is what actually keeps this scoped to only the
-// signed-in lister's own deleted listings, regardless of this query's own
-// .eq("lister_id", ...) filter (see getListerDeletedVehicles's own note).
+// Guarded at the layout level (app/lister/layout.tsx). Shows the shared
+// inventory's deleted listings — every lister's, not just the caller's
+// (migration 0035) — with each card naming who deleted it.
 export default async function ListerDeletedListingsPage() {
-  const profile = await getCurrentProfile();
-  const listings = await getListerDeletedVehicles(profile.id);
+  const listings = await getListerDeletedVehicles();
 
   return (
     <div className="space-y-4">

@@ -4,12 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ListerSearchResult = { id: string; title: string; subtitle: string; href: string };
 
-// Scoped to the caller's own vehicles only — vehicles_select_own RLS
-// enforces this regardless, but the explicit .eq below keeps the query
-// itself honest about intent (a lister has nothing else to search here,
-// unlike the admin search which also covers user accounts).
+// Searches the whole shared inventory (migration 0035), which is what the
+// lister's own Vehicles page now lists too. Still vehicles-only, unlike the
+// admin search, which also covers user accounts.
 export async function GET(request: Request) {
-  const profile = await requireAdminOrLister();
+  await requireAdminOrLister();
   const q = new URL(request.url).searchParams.get("q")?.trim();
   if (!q || q.length < 2) return NextResponse.json({ results: [] });
 
@@ -19,7 +18,6 @@ export async function GET(request: Request) {
   const { data: vehicles } = await supabase
     .from("vehicles")
     .select("id, name, status")
-    .eq("lister_id", profile.id)
     .eq("is_deleted", false)
     .or(`name.ilike.%${safe}%,model.ilike.%${safe}%`)
     .limit(8);

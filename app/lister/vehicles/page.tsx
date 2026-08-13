@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getCurrentProfile } from "@/lib/auth/dal";
 import { getListerVehicles } from "@/lib/lister/vehicles-data";
 import { buildVehicleShareMessage } from "@/lib/vehicles/share";
 import { env } from "@/lib/env";
@@ -9,8 +8,7 @@ export const metadata: Metadata = { title: "My Vehicles — Kerala Lease Hub" };
 export const revalidate = 0;
 
 export default async function ListerVehiclesPage() {
-  const profile = await getCurrentProfile();
-  const vehicles = await getListerVehicles(profile.id);
+  const vehicles = await getListerVehicles();
 
   const items = vehicles.map((vehicle) => {
     const shareUrl = `${env.PUBLIC_SITE_URL}/vehicles/${vehicle.slug}`;

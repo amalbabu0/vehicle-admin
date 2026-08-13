@@ -43,7 +43,8 @@ See [`.env.example`](.env.example) for the full list. Key points:
 ## Access model
 
 This app is **read+write** against Supabase: Admin/Super Admin manage
-users, listers, and approvals; Listers manage their own vehicles. All of
+users, listers, and approvals; Listers share one common inventory and can
+manage every vehicle listing in it, whoever created it. All of
 it is enforced server-side by Supabase RLS policies keyed on
 `auth.uid()` + role — the app's own route/UI checks are a UX layer, not
 the security boundary. See the Supabase schema/RLS doc once the
