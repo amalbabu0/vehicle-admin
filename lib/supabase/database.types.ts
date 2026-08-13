@@ -656,6 +656,39 @@ export type Database = {
           },
         ]
       }
+      visitor_logs: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: number
+          ip: string
+          is_authenticated: boolean
+          path: string
+          referrer: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: never
+          ip: string
+          is_authenticated?: boolean
+          path: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: never
+          ip?: string
+          is_authenticated?: boolean
+          path?: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
