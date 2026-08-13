@@ -29,15 +29,6 @@ export type ShareableVehicle = {
   bookingStatus?: "available" | "booked";
 };
 
-/** Invite link for the WhatsApp community listings get cross-posted to.
- *
- * WhatsApp exposes no deep link that sends a message *into* a specific group
- * or community — `wa.me/?text=` can only open the chat picker. So the
- * community button copies the message and opens this link; the admin pastes
- * it in the announcement group. Leave empty to hide the button entirely
- * rather than ship one that opens a dead URL. */
-export const WHATSAPP_COMMUNITY_URL: string = "";
-
 const OWNERSHIP_ORDINALS = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"];
 
 export function formatOwnership(count: number | null): string | null {
