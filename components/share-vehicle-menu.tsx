@@ -155,29 +155,59 @@ export function ShareVehicleMenu({
   };
 
   return (
-    <div className="inline-flex items-stretch overflow-hidden rounded-full border border-[#25D366]/30 bg-[#25D366]/10 backdrop-blur-sm">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            onClick={shareOnWhatsApp}
-            aria-label="Share on WhatsApp"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#25D366] transition hover:bg-[#25D366]/15"
-          >
-            <WhatsAppIcon className="size-4" />
-            <span className="hidden sm:inline">Share</span>
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>Share on WhatsApp</TooltipContent>
-      </Tooltip>
+    <div className="inline-flex items-center gap-2">
+      <div className="inline-flex items-stretch overflow-hidden rounded-full border border-[#25D366]/30 bg-[#25D366]/10 backdrop-blur-sm">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={shareOnWhatsApp}
+              aria-label="Share on WhatsApp"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#25D366] transition hover:bg-[#25D366]/15"
+            >
+              <WhatsAppIcon className="size-4" />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Share on WhatsApp</TooltipContent>
+        </Tooltip>
 
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label="More share options"
+              className="flex items-center border-l border-[#25D366]/30 px-1.5 text-[#25D366] transition hover:bg-[#25D366]/15"
+            >
+              <ChevronDown className="size-3.5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={nativeShare}>
+              <Share2 className="size-4" /> Native share
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={copyLink}>
+              <Copy className="size-4" /> Copy link
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={downloadImage} disabled={isDownloading || !imageUrl}>
+              <Download className="size-4" /> {isDownloading ? "Downloading…" : "Download image"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Neutral rather than WhatsApp green, and outside the pill: the clipboard
+          is destination-agnostic — the message can be pasted anywhere, not just
+          WhatsApp — so it shouldn't read as part of the WhatsApp control.
+          Themed tokens, not a literal white, since /admin toggles a scoped
+          .dark and a hardcoded white would disappear against it. */}
       <Tooltip>
         <TooltipTrigger asChild>
           <button
             type="button"
             onClick={copyMessage}
             aria-label="Copy the share message"
-            className="flex items-center gap-1.5 border-l border-[#25D366]/30 px-3 py-1.5 text-sm font-medium text-[#25D366] transition hover:bg-[#25D366]/15"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-sm font-medium text-muted-foreground backdrop-blur-sm transition hover:bg-muted hover:text-foreground"
           >
             <ClipboardCopy className="size-4" />
             <span className="hidden sm:inline">Copy</span>
@@ -185,29 +215,6 @@ export function ShareVehicleMenu({
         </TooltipTrigger>
         <TooltipContent>Copy the message to paste into a community or group</TooltipContent>
       </Tooltip>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label="More share options"
-            className="flex items-center border-l border-[#25D366]/30 px-1.5 text-[#25D366] transition hover:bg-[#25D366]/15"
-          >
-            <ChevronDown className="size-3.5" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={nativeShare}>
-            <Share2 className="size-4" /> Native share
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={copyLink}>
-            <Copy className="size-4" /> Copy link
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={downloadImage} disabled={isDownloading || !imageUrl}>
-            <Download className="size-4" /> {isDownloading ? "Downloading…" : "Download image"}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 }
