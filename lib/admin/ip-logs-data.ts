@@ -75,6 +75,22 @@ export async function getVisitorLogsPage(
 }
 
 /**
+ * Which of the addresses on the current page are already blocked.
+ *
+ * One .in() over the page's distinct IPs rather than a lookup per row — 25
+ * rows commonly collapse to a handful of addresses, and a query per row would
+ * be the N+1 that PERFORMANCE_STANDARDS item 1 exists to prevent.
+ */
+export async function getBlockedIps(ips: string[]): Promise<Set<string>> {
+  const distinct = [...new Set(ips)].filter((ip) => ip && ip !== "unknown");
+  if (distinct.length === 0) return new Set();
+
+  const supabase = await createClient();
+  const { data } = await supabase.from("blocked_ips").select("ip").in("ip", distinct);
+  return new Set((data ?? []).map((row) => row.ip));
+}
+
+/**
  * The two numbers worth showing above the table. uniqueIpsToday is counted in
  * JS over the last 24h of rows rather than with a DISTINCT query, because
  * PostgREST cannot express `count(distinct ip)` — bounded by an explicit

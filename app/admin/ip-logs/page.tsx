@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDistanceToNow, format } from "date-fns";
 import { Globe } from "lucide-react";
-import { getVisitorLogsPage, getVisitorStats, UNIQUE_IP_SAMPLE_CAP } from "@/lib/admin/ip-logs-data";
+import { getBlockedIps, getVisitorLogsPage, getVisitorStats, UNIQUE_IP_SAMPLE_CAP } from "@/lib/admin/ip-logs-data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { IpLogsFilters } from "@/components/admin/ip-logs-filters";
 import { AutoRefresh } from "@/components/admin/auto-refresh";
+import { BlockIpButton } from "@/components/admin/block-ip-button";
 
 export const metadata: Metadata = { title: "IP Logs" };
 export const revalidate = 0;
@@ -26,6 +27,9 @@ export default async function AdminIpLogsPage({ searchParams }: PageProps) {
     getVisitorLogsPage(filter, page, PAGE_SIZE),
     getVisitorStats(),
   ]);
+  // Sequential rather than in the Promise.all above: it needs the page's rows
+  // to know which addresses to ask about.
+  const blockedIps = await getBlockedIps(logs.map((log) => log.ip));
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const uniqueCapped = stats.visitsToday > UNIQUE_IP_SAMPLE_CAP;
 
@@ -73,12 +77,13 @@ export default async function AdminIpLogsPage({ searchParams }: PageProps) {
               <TableHead>Referrer</TableHead>
               <TableHead>Device</TableHead>
               <TableHead>When</TableHead>
+              <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {logs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-16 text-center">
+                <TableCell colSpan={7} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <Globe className="size-8" />
                     <p className="text-sm">No visits match these filters.</p>
@@ -86,11 +91,14 @@ export default async function AdminIpLogsPage({ searchParams }: PageProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              logs.map((log) => (
-                <TableRow key={log.id}>
+              logs.map((log) => {
+                const isBlocked = blockedIps.has(log.ip);
+                return (
+                <TableRow key={log.id} className={isBlocked ? "bg-destructive/5" : undefined}>
                   <TableCell className="whitespace-nowrap font-mono text-xs">
                     {log.ip}
                     {log.country ? <span className="ml-2 text-muted-foreground">{log.country}</span> : null}
+                    {isBlocked ? <Badge variant="destructive" className="ml-2">Blocked</Badge> : null}
                   </TableCell>
                   <TableCell className="max-w-[16rem] truncate text-sm">{log.path}</TableCell>
                   <TableCell>
@@ -109,8 +117,16 @@ export default async function AdminIpLogsPage({ searchParams }: PageProps) {
                       {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
                     </span>
                   </TableCell>
+                  <TableCell className="text-right">
+                    {log.ip === "unknown" ? (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    ) : (
+                      <BlockIpButton ip={log.ip} blocked={isBlocked} />
+                    )}
+                  </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>
