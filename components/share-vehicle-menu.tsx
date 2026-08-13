@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { ChevronDown, Copy, Download, Share2, MessageSquareText } from "lucide-react";
+import { ChevronDown, Copy, Download, Share2, MessageSquareText, UsersRound } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { buildWhatsAppShareUrl } from "@/lib/vehicles/share";
+import { buildWhatsAppShareUrl, WHATSAPP_COMMUNITY_URL } from "@/lib/vehicles/share";
 
 /** Turns the fetched blob into a grayscale copy with an "ALREADY BOOKED"
  * banner stamped across it — used for every image that actually leaves the
@@ -91,6 +91,21 @@ export function ShareVehicleMenu({
     window.open(buildWhatsAppShareUrl(message), "_blank", "noopener,noreferrer");
   };
 
+  /** Copy *before* opening: `navigator.clipboard.writeText` rejects once the
+   * document loses focus to the new tab, whereas `window.open` still has
+   * transient user activation after a short await — so this order is the one
+   * that survives both. A clipboard failure still opens the community; the
+   * admin can fall back to "Copy message" in the dropdown. */
+  const shareToCommunity = async () => {
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success("Message copied — paste it in the community.");
+    } catch {
+      toast.error("Couldn't copy automatically — use “Copy message”, then paste.");
+    }
+    window.open(WHATSAPP_COMMUNITY_URL, "_blank", "noopener,noreferrer");
+  };
+
   const copyLink = async () => {
     await navigator.clipboard.writeText(url);
     toast.success("Vehicle link copied.");
@@ -161,6 +176,23 @@ export function ShareVehicleMenu({
         </TooltipTrigger>
         <TooltipContent>Share on WhatsApp</TooltipContent>
       </Tooltip>
+
+      {WHATSAPP_COMMUNITY_URL && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={shareToCommunity}
+              aria-label="Share to the WhatsApp community"
+              className="flex items-center gap-1.5 border-l border-[#25D366]/30 px-3 py-1.5 text-sm font-medium text-[#25D366] transition hover:bg-[#25D366]/15"
+            >
+              <UsersRound className="size-4" />
+              <span className="hidden sm:inline">Community</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Copy the message and open the WhatsApp community</TooltipContent>
+        </Tooltip>
+      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

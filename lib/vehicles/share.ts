@@ -29,7 +29,14 @@ export type ShareableVehicle = {
   bookingStatus?: "available" | "booked";
 };
 
-const WHATSAPP_CHANNEL_URL = "https://whatsapp.com/channel/0029Vb7g7FCICVfuoWjwAR3A";
+/** Invite link for the WhatsApp community listings get cross-posted to.
+ *
+ * WhatsApp exposes no deep link that sends a message *into* a specific group
+ * or community — `wa.me/?text=` can only open the chat picker. So the
+ * community button copies the message and opens this link; the admin pastes
+ * it in the announcement group. Leave empty to hide the button entirely
+ * rather than ship one that opens a dead URL. */
+export const WHATSAPP_COMMUNITY_URL: string = "";
 
 const OWNERSHIP_ORDINALS = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"];
 
@@ -87,9 +94,6 @@ export function buildVehicleShareMessage(vehicle: ShareableVehicle, publicUrl: s
     "",
     "🔗 View Vehicle",
     publicUrl,
-    "",
-    "📢 Join our WhatsApp Channel for more listings",
-    WHATSAPP_CHANNEL_URL,
     "",
     "_Powered by Kerala Lease Hub_"
   );
