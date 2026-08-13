@@ -17,6 +17,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+/** 30 days by default rather than permanent. Most addresses reaching this site
+ * are dynamic — mobile carriers and home broadband reassign them — so an
+ * indefinite block eventually stops affecting the abuser and starts silently
+ * locking out whoever inherits the address. Permanent stays available for the
+ * case it fits. */
+const DURATIONS = [
+  { value: "1d", label: "24 hours" },
+  { value: "7d", label: "7 days" },
+  { value: "30d", label: "30 days" },
+  { value: "permanent", label: "Permanent — until I unblock it" },
+] as const;
 
 /**
  * Blocking is confirmed behind a dialog; unblocking is not. The asymmetry is
@@ -24,10 +37,22 @@ import { Input } from "@/components/ui/input";
  * on a dense table of near-identical addresses is easy, while unblocking only
  * restores the default and is trivially redone.
  */
-export function BlockIpButton({ ip, blocked }: { ip: string; blocked: boolean }) {
+export function BlockIpButton({
+  ip,
+  blocked,
+  /** "Unblock" is wrong on a row that has already lapsed — there is nothing
+   * left to lift, and the action just clears the record. The Blocked IPs page
+   * passes "Remove" for those. */
+  unblockLabel = "Unblock",
+}: {
+  ip: string;
+  blocked: boolean;
+  unblockLabel?: string;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [reason, setReason] = useState("");
+  const [duration, setDuration] = useState<string>("30d");
   const [open, setOpen] = useState(false);
 
   const send = async (method: "POST" | "DELETE", body: Record<string, string>) => {
@@ -57,7 +82,7 @@ export function BlockIpButton({ ip, blocked }: { ip: string; blocked: boolean })
         disabled={isPending}
         onClick={() => startTransition(() => void send("DELETE", { ip }))}
       >
-        <ShieldCheck className="size-3.5" /> Unblock
+        <ShieldCheck className="size-3.5" /> {unblockLabel}
       </Button>
     );
   }
@@ -80,12 +105,30 @@ export function BlockIpButton({ ip, blocked }: { ip: string; blocked: boolean })
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <Input
-          value={reason}
-          onChange={(event) => setReason(event.target.value)}
-          placeholder="Reason (optional) — e.g. scraping every listing"
-          maxLength={200}
-        />
+        <div className="space-y-3">
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium">Block for</span>
+            <Select value={duration} onValueChange={setDuration}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DURATIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+
+          <Input
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="Reason (optional) — e.g. scraping every listing"
+            maxLength={200}
+          />
+        </div>
 
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -93,7 +136,7 @@ export function BlockIpButton({ ip, blocked }: { ip: string; blocked: boolean })
             disabled={isPending}
             onClick={(event) => {
               event.preventDefault();
-              startTransition(() => void send("POST", { ip, reason }));
+              startTransition(() => void send("POST", { ip, reason, duration }));
             }}
           >
             Block this address

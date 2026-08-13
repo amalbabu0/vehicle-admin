@@ -103,18 +103,21 @@ export type Database = {
         Row: {
           blocked_by: string | null
           created_at: string
+          expires_at: string | null
           ip: string
           reason: string | null
         }
         Insert: {
           blocked_by?: string | null
           created_at?: string
+          expires_at?: string | null
           ip: string
           reason?: string | null
         }
         Update: {
           blocked_by?: string | null
           created_at?: string
+          expires_at?: string | null
           ip?: string
           reason?: string | null
         }

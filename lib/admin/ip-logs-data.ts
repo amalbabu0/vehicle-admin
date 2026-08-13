@@ -75,18 +75,27 @@ export async function getVisitorLogsPage(
 }
 
 /**
- * Which of the addresses on the current page are already blocked.
+ * Which of the addresses on the current page are *actively* blocked.
  *
  * One .in() over the page's distinct IPs rather than a lookup per row — 25
  * rows commonly collapse to a handful of addresses, and a query per row would
  * be the N+1 that PERFORMANCE_STANDARDS item 1 exists to prevent.
+ *
+ * Lapsed rows are excluded with the same test is_ip_blocked() applies, so the
+ * badge on this page always means "this address is blocked right now" rather
+ * than "was blocked at some point" — otherwise the table would claim a block
+ * the public site is no longer enforcing.
  */
 export async function getBlockedIps(ips: string[]): Promise<Set<string>> {
   const distinct = [...new Set(ips)].filter((ip) => ip && ip !== "unknown");
   if (distinct.length === 0) return new Set();
 
   const supabase = await createClient();
-  const { data } = await supabase.from("blocked_ips").select("ip").in("ip", distinct);
+  const { data } = await supabase
+    .from("blocked_ips")
+    .select("ip")
+    .in("ip", distinct)
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
   return new Set((data ?? []).map((row) => row.ip));
 }
 
