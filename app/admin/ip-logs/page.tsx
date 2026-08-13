@@ -6,6 +6,7 @@ import { getVisitorLogsPage, getVisitorStats, UNIQUE_IP_SAMPLE_CAP } from "@/lib
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { IpLogsFilters } from "@/components/admin/ip-logs-filters";
+import { AutoRefresh } from "@/components/admin/auto-refresh";
 
 export const metadata: Metadata = { title: "IP Logs" };
 export const revalidate = 0;
@@ -30,11 +31,15 @@ export default async function AdminIpLogsPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">IP Logs</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Every visit to the public site, signed in or not. {total.toLocaleString("en-IN")} recorded visit{total === 1 ? "" : "s"}.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">IP Logs</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every visit to the public site, signed in or not — {total.toLocaleString("en-IN")} recorded visit
+            {total === 1 ? "" : "s"}. Entries are permanently deleted after 24 hours.
+          </p>
+        </div>
+        <AutoRefresh />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
