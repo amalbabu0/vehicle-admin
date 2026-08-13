@@ -78,12 +78,22 @@ async function logAuditEvent(action: string, entityId?: string, metadata: Record
 }
 
 /** Uses the dedicated log_failed_login() RPC, not logAuditEvent() above —
- * this needs to work before there's a session (rate-limited, wrong
- * password, etc.), and that RPC is deliberately narrower than the general
- * one (see migration 0017) since it's reachable by anon callers. */
+ * this needs to work before there's a session (rate-limited, wrong password,
+ * etc.), and that RPC is deliberately narrower than the general one (see
+ * migration 0017).
+ *
+ * Runs on the service-role client, not the cookie-bound one. Because there is
+ * no session at this point the cookie client is the anon role, which meant the
+ * RPC had to be executable by anon — and since the caller supplies p_ip, any
+ * holder of the public anon key could fabricate failed logins against any
+ * address and drive the "Possible brute-force activity" panel, which now sits
+ * beside a Block button. Migration 0041 revokes anon and grants service_role
+ * instead; this is the caller that change is written for. Safe here: the
+ * arguments are values this action already computed, never client input
+ * routed through. */
 async function logFailedLogin(email: string, ip: string, reason: string) {
-  const supabase = await createClient();
-  await supabase.rpc("log_failed_login", { p_email: email, p_ip: ip, p_reason: reason });
+  const service = createServiceRoleClient();
+  await service.rpc("log_failed_login", { p_email: email, p_ip: ip, p_reason: reason });
 }
 
 // ============================================================================
