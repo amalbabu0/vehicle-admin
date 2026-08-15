@@ -107,7 +107,14 @@ export async function getListingsPage(
   // has to happen here at the query level.
   let query = supabase.from("vehicles").select(LISTING_SELECT, { count: "exact" }).eq("is_deleted", false);
 
-  const [featuredIds, locations] = await Promise.all([getFeaturedIds(), getLocationLookup()]);
+  // districtLocationIds only actually runs a query when the filter is set
+  // (undefined otherwise) — folded into the same Promise.all as the other
+  // two independent lookups rather than awaited afterward on its own.
+  const [featuredIds, locations, districtLocationIds] = await Promise.all([
+    getFeaturedIds(),
+    getLocationLookup(),
+    filter.districtSlug ? resolveDistrictLocationIds(filter.districtSlug) : Promise.resolve(undefined),
+  ]);
 
   if (filter.tab === "pending") query = query.eq("status", "pending_approval");
   else if (filter.tab === "approved") query = query.eq("status", "published");
@@ -127,8 +134,7 @@ export async function getListingsPage(
   if (filter.from) query = query.gte("created_at", filter.from);
   if (filter.to) query = query.lte("created_at", filter.to);
   if (filter.districtSlug) {
-    const ids = await resolveDistrictLocationIds(filter.districtSlug);
-    query = ids.length ? query.in("location_id", ids) : query.eq("id", "00000000-0000-0000-0000-000000000000");
+    query = districtLocationIds?.length ? query.in("location_id", districtLocationIds) : query.eq("id", "00000000-0000-0000-0000-000000000000");
   }
 
   const from = (page - 1) * pageSize;
