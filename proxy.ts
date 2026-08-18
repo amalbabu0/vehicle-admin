@@ -18,6 +18,18 @@ const PUBLIC_PATHS = [
   "/auth/callback",
 ];
 
+// Public paths an *authenticated* user is still allowed to sit on, instead
+// of being bounced to "/" by the redirect at the bottom of this file.
+// A password-recovery link necessarily creates a session before the person
+// ever sees the reset form — /auth/callback calls exchangeCodeForSession()
+// and only then redirects to /reset-password (see resetPasswordForEmail's
+// redirectTo in app/actions/auth.ts). Bouncing a signed-in user off
+// /reset-password therefore made the reset flow impossible to finish: the
+// link landed on "/", which dispatches by role via the DAL, so the form
+// never rendered. /auth/callback was already exempt for the same reason;
+// the destination it hands off to needs the exemption too.
+const AUTHENTICATED_ALLOWED_PATHS = ["/auth/callback", "/reset-password"];
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -69,7 +81,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (user && isPublicPath && path !== "/auth/callback") {
+  if (user && isPublicPath && !AUTHENTICATED_ALLOWED_PATHS.includes(path)) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

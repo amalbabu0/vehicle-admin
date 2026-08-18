@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MAX_VEHICLE_IMAGES } from "@/components/lister/add-vehicle/constants";
+import { readJsonResponse } from "@/lib/fetch-json";
 import type { WizardImage } from "@/components/lister/add-vehicle/types";
 import {
   type QuickListingExtraction,
@@ -100,8 +101,9 @@ export function QuickListingForm({
         const body = new FormData();
         body.append("file", image.file);
         const response = await fetch("/api/uploads/vehicle-image", { method: "POST", body });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.message || "Unable to upload image.");
+        const result = await readJsonResponse<WizardImage>(response);
+        if (!result.ok) throw new Error(result.message);
+        const payload = result.data;
         uploaded.push({ url: payload.url, mediumUrl: payload.mediumUrl, thumbnailUrl: payload.thumbnailUrl, contentHash: payload.contentHash });
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Unable to upload image.");
@@ -129,13 +131,13 @@ export function QuickListingForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: state.message }),
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        toast.error(payload.message || "Couldn't read the vehicle details from that message.");
+      const result = await readJsonResponse<{ fields: QuickListingExtraction["fields"]; unresolved?: string[] }>(response);
+      if (!result.ok) {
+        toast.error(result.message);
         return;
       }
 
-      onExtracted({ fields: payload.fields, unresolved: payload.unresolved ?? [], imageUrls });
+      onExtracted({ fields: result.data.fields, unresolved: result.data.unresolved ?? [], imageUrls });
     } catch {
       toast.error("Couldn't reach the server. Check your connection and try again.");
     } finally {

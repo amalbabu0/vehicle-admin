@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Camera, ChevronLeft, ChevronRight, Loader2, Star, X } from "lucide-react";
 import type { WizardFormState, WizardImage } from "@/components/lister/add-vehicle/types";
 import { MAX_VEHICLE_IMAGES as MAX_IMAGES } from "@/components/lister/add-vehicle/constants";
+import { readJsonResponse } from "@/lib/fetch-json";
 
 export function ImagesStep({
   formState,
@@ -41,8 +42,9 @@ export function ImagesStep({
         const body = new FormData();
         body.append("file", file);
         const response = await fetch("/api/uploads/vehicle-image", { method: "POST", body });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.message || "Unable to upload image.");
+        const result = await readJsonResponse<WizardImage>(response);
+        if (!result.ok) throw new Error(result.message);
+        const payload = result.data;
         uploaded.push({ url: payload.url, mediumUrl: payload.mediumUrl, thumbnailUrl: payload.thumbnailUrl, contentHash: payload.contentHash });
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Unable to upload image.");
